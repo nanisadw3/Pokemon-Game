@@ -213,141 +213,148 @@ function App() {
     sendSystemMsg(`--- Cambio de Turno ---`);
   };
 
-  if (loading) return <div className="loading"><div className="pokeball-loading"></div><p>Cargando aventura...</p></div>;
+  const renderContent = () => {
+    if (loading) return <div className="loading"><div className="pokeball-loading"></div><p>Cargando aventura...</p></div>;
 
-  if (gameState.phase === 'lobby') {
+    if (gameState.phase === 'lobby') {
+      return (
+        <div className="lobby-container">
+          <h1>Pokémon Guess Who Multiplayer</h1>
+          <div className="lobby-box">
+            <input type="text" placeholder="CÓDIGO SALA" value={roomCode} onChange={(e) => setRoomCode(e.target.value.toUpperCase())} maxLength={6} />
+            <div className="lobby-buttons">
+              <button onClick={createGame} className="create-btn">CREAR</button>
+              <button onClick={joinGame} className="join-btn">UNIRSE</button>
+            </div>
+            {isWaitingForOpponent && <div className="waiting-msg"><div className="pokeball-loading mini"></div><p>Esperando rival... (SALA: {roomCode})</p></div>}
+          </div>
+        </div>
+      );
+    }
+
     return (
-      <div className="lobby-container">
-        <h1>Pokémon Guess Who Multiplayer</h1>
-        <div className="lobby-box">
-          <input type="text" placeholder="CÓDIGO SALA" value={roomCode} onChange={(e) => setRoomCode(e.target.value.toUpperCase())} maxLength={6} />
-          <div className="lobby-buttons">
-            <button onClick={createGame} className="create-btn">CREAR</button>
-            <button onClick={joinGame} className="join-btn">UNIRSE</button>
-          </div>
-          {isWaitingForOpponent && <div className="waiting-msg"><div className="pokeball-loading mini"></div><p>Esperando rival... (SALA: {roomCode})</p></div>}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="app-container">
-      {gameAlert && (
-        <div className="game-alert-overlay">
-          <div className="game-alert-box">
-            <h3>{gameAlert.title}</h3>
-            <p>{gameAlert.message}</p>
-            <button onClick={gameAlert.onConfirm}>CONTINUAR</button>
-          </div>
-        </div>
-      )}
-
-      {selectedAnim && (
-        <div className="selection-overlay">
-          <div className="anim-content">
-            <h2>¡TE ELIJO A TI!</h2>
-            <img src={selectedAnim.image} alt={selectedAnim.name} className="anim-image" />
-            <h1 className="anim-name">{selectedAnim.name}</h1>
-          </div>
-        </div>
-      )}
-
-      {gameState.phase === 'setup' ? (
-        <div className="setup-container">
-          <div className="setup-header">
-            <h1>Preparación J{myPlayerNum}</h1>
-            <button onClick={refreshBoard} className={`refresh-btn ${refreshing ? 'spinning' : ''}`} disabled={refreshing}>
-              🔄 CAMBIAR POKÉMON
-            </button>
-          </div>
-          <h2>Elige TU Pokémon secreto de este tablero</h2>
-          <div className="selection-grid">
-            {(myPlayerNum === 1 ? gameState.board1 : gameState.board2).map(item => (
-              <PokemonCard key={item.pokemon.id} pokemon={item.pokemon} isFlipped={false} onClick={() => handleSelectSecret(item.pokemon)} />
-            ))}
-          </div>
-          {(myPlayerNum === 1 ? gameState.secretPokemon1 : gameState.secretPokemon2) && (
-            <div className="setup-waiting"><p>Esperando al otro jugador...</p></div>
-          )}
-        </div>
-      ) : (
-        <>
-          <header>
-            <div className="header-left"><h1>Sala: {roomCode}</h1></div>
-            <div className="turn-indicator">{gameState.turn === myPlayerNum ? "TU TURNO" : "TURNO RIVAL"}</div>
-          </header>
-
-          <div className="game-layout-single">
-            <div className="player-section">
-              <div className="secret-display">
-                <button onClick={() => setShowSecret(!showSecret)} className="reveal-btn">
-                  {showSecret ? 'Ocultar Mi Secreto' : 'Revelar Mi Secreto'}
-                </button>
-                {showSecret && (
-                  <div className="secret-card-mini">
-                    <PokemonCard pokemon={myPlayerNum === 1 ? gameState.secretPokemon1! : gameState.secretPokemon2!} isFlipped={false} onClick={() => {}} isSecret />
-                  </div>
-                )}
-              </div>
-              
-              <GameBoard 
-                title={isGuessMode ? "¡ADIVINA!" : "Tablero del Rival"} 
-                board={myPlayerNum === 1 ? gameState.board2 : gameState.board1} 
-                onCardClick={handleCardClick} 
-                showNames={false} 
-              />
-              
-              <div className="action-buttons">
-                {gameState.turn === myPlayerNum && (
-                  <>
-                    <button onClick={handleEndTurn} className="done-btn">TERMINAR TURNO</button>
-                    <button onClick={() => setIsGuessMode(!isGuessMode)} className={`finalize-btn ${isGuessMode ? 'guessing' : ''}`}>
-                      {isGuessMode ? 'CANCELAR' : '¿SÉ QUIÉN ES?'}
-                    </button>
-                  </>
-                )}
-              </div>
+      <div className="app-container">
+        {gameAlert && (
+          <div className="game-alert-overlay">
+            <div className="game-alert-box">
+              <h3>{gameAlert.title}</h3>
+              <p>{gameAlert.message}</p>
+              <button onClick={gameAlert.onConfirm}>CONTINUAR</button>
             </div>
           </div>
-        </>
-      )}
+        )}
 
-      {gameState.phase === 'gameover' && (
-        <div className="victory-overlay">
-          <div className="victory-card-epic">
-            <h1>{gameState.winner === myPlayerNum ? "🏆 ¡GANASTE! 🏆" : "💀 PERDISTE..."}</h1>
-            <img src={myPlayerNum === 1 ? gameState.secretPokemon2?.image : gameState.secretPokemon1?.image} className="winner-image" alt="Winner" />
-            <p>Era <span>{myPlayerNum === 1 ? gameState.secretPokemon2?.name : gameState.secretPokemon1?.name}</span></p>
-            <button onClick={() => window.location.reload()} className="play-again-btn">INICIO</button>
+        {selectedAnim && (
+          <div className="selection-overlay">
+            <div className="anim-content">
+              <h2>¡TE ELIJO A TI!</h2>
+              <img src={selectedAnim.image} alt={selectedAnim.name} className="anim-image" />
+              <h1 className="anim-name">{selectedAnim.name}</h1>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {chatVisible ? (
-        <div className={`chat-container ${isChatMinimized ? 'minimized' : ''}`}>
-          <div className="chat-header" onClick={() => setIsChatMinimized(!isChatMinimized)}>
-            <span>{isChatMinimized ? '💬 Chat' : '💬 Chat Multijugador'}</span>
-            {!isChatMinimized && <button onClick={(e) => { e.stopPropagation(); setChatVisible(false); }} style={{background:'none', border:'none', color:'#1e293b', cursor:'pointer', fontSize:'1.2rem', fontWeight:'bold'}}>×</button>}
+        {gameState.phase === 'setup' ? (
+          <div className="setup-container">
+            <div className="setup-header">
+              <h1>Preparación J{myPlayerNum}</h1>
+              <button onClick={refreshBoard} className={`refresh-btn ${refreshing ? 'spinning' : ''}`} disabled={refreshing}>
+                🔄 CAMBIAR POKÉMON
+              </button>
+            </div>
+            <h2>Elige TU Pokémon secreto de este tablero</h2>
+            <div className="selection-grid">
+              {(myPlayerNum === 1 ? gameState.board1 : gameState.board2).map(item => (
+                <PokemonCard key={item.pokemon.id} pokemon={item.pokemon} isFlipped={false} onClick={() => handleSelectSecret(item.pokemon)} />
+              ))}
+            </div>
+            {(myPlayerNum === 1 ? gameState.secretPokemon1 : gameState.secretPokemon2) && (
+              <div className="setup-waiting"><p>Esperando al otro jugador...</p></div>
+            )}
           </div>
-          {!isChatMinimized && (
-            <>
-              <div className="chat-messages" ref={chatMessagesRef}>
-                {messages.length === 0 && <p className="message system">¡Suerte!</p>}
-                {messages.map((m, i) => {
-                  const isMe = (myPlayerNum === 1 && m.sender === 'player1') || (myPlayerNum === 2 && m.sender === 'player2');
-                  return <div key={i} className={`message ${m.sender}`}>{m.sender !== 'system' && <strong>{isMe ? 'Tú: ' : 'Él: '}</strong>}{m.text}</div>;
-                })}
+        ) : (
+          <>
+            <header>
+              <div className="header-left"><h1>Sala: {roomCode}</h1></div>
+              <div className="turn-indicator">{gameState.turn === myPlayerNum ? "TU TURNO" : "TURNO RIVAL"}</div>
+            </header>
+
+            <div className="game-layout-single">
+              <div className="player-section">
+                <div className="secret-display">
+                  <button onClick={() => setShowSecret(!showSecret)} className="reveal-btn">
+                    {showSecret ? 'Ocultar Mi Secreto' : 'Revelar Mi Secreto'}
+                  </button>
+                  {showSecret && (
+                    <div className="secret-card-mini">
+                      <PokemonCard pokemon={myPlayerNum === 1 ? gameState.secretPokemon1! : gameState.secretPokemon2!} isFlipped={false} onClick={() => {}} isSecret />
+                    </div>
+                  )}
+                </div>
+                
+                <GameBoard 
+                  title={isGuessMode ? "¡ADIVINA!" : "Tablero del Rival"} 
+                  board={myPlayerNum === 1 ? gameState.board2 : gameState.board1} 
+                  onCardClick={handleCardClick} 
+                  showNames={false} 
+                />
+                
+                <div className="action-buttons">
+                  {gameState.turn === myPlayerNum && (
+                    <>
+                      <button onClick={handleEndTurn} className="done-btn">TERMINAR TURNO</button>
+                      <button onClick={() => setIsGuessMode(!isGuessMode)} className={`finalize-btn ${isGuessMode ? 'guessing' : ''}`}>
+                        {isGuessMode ? 'CANCELAR' : '¿SÉ QUIÉN ES?'}
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
-              <form className="chat-input-area" onSubmit={handleSendMessage}>
-                <input type="text" placeholder="Escribe..." value={chatInput} onChange={(e) => setChatInput(e.target.value)} />
-                <button type="submit">OK</button>
-              </form>
-            </>
-          )}
-        </div>
-      ) : <button className="toggle-chat-btn" onClick={() => setChatVisible(true)}>💬 Chat</button>}
+            </div>
+          </>
+        )}
 
+        {gameState.phase === 'gameover' && (
+          <div className="victory-overlay">
+            <div className="victory-card-epic">
+              <h1>{gameState.winner === myPlayerNum ? "🏆 ¡GANASTE! 🏆" : "💀 PERDISTE..."}</h1>
+              <img src={myPlayerNum === 1 ? gameState.secretPokemon2?.image : gameState.secretPokemon1?.image} className="winner-image" alt="Winner" />
+              <p>Era <span>{myPlayerNum === 1 ? gameState.secretPokemon2?.name : gameState.secretPokemon1?.name}</span></p>
+              <button onClick={() => window.location.reload()} className="play-again-btn">INICIO</button>
+            </div>
+          </div>
+        )}
+
+        {chatVisible ? (
+          <div className={`chat-container ${isChatMinimized ? 'minimized' : ''}`}>
+            <div className="chat-header" onClick={() => setIsChatMinimized(!isChatMinimized)}>
+              <span>{isChatMinimized ? '💬 Chat' : '💬 Chat Multijugador'}</span>
+              {!isChatMinimized && <button onClick={(e) => { e.stopPropagation(); setChatVisible(false); }} style={{background:'none', border:'none', color:'#1e293b', cursor:'pointer', fontSize:'1.2rem', fontWeight:'bold'}}>×</button>}
+            </div>
+            {!isChatMinimized && (
+              <>
+                <div className="chat-messages" ref={chatMessagesRef}>
+                  {messages.length === 0 && <p className="message system">¡Suerte!</p>}
+                  {messages.map((m, i) => {
+                    const isMe = (myPlayerNum === 1 && m.sender === 'player1') || (myPlayerNum === 2 && m.sender === 'player2');
+                    return <div key={i} className={`message ${m.sender}`}>{m.sender !== 'system' && <strong>{isMe ? 'Tú: ' : 'Él: '}</strong>}{m.text}</div>;
+                  })}
+                </div>
+                <form className="chat-input-area" onSubmit={handleSendMessage}>
+                  <input type="text" placeholder="Escribe..." value={chatInput} onChange={(e) => setChatInput(e.target.value)} />
+                  <button type="submit">OK</button>
+                </form>
+              </>
+            )}
+          </div>
+        ) : <button className="toggle-chat-btn" onClick={() => setChatVisible(true)}>💬 Chat</button>}
+      </div>
+    );
+  };
+
+  return (
+    <div className="main-wrapper">
+      {renderContent()}
       <footer className="app-footer">
         <p>© 2026 Inaki Sobera Sotomayor</p>
       </footer>
