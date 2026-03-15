@@ -45,7 +45,6 @@ function App() {
 
   useEffect(() => {
     const newSocket: Socket = io(SOCKET_SERVER_URL, {
-      path: '/api/socket.io',
       transports: ['websocket']
     });
     setSocket(newSocket);
