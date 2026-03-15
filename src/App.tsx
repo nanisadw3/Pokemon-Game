@@ -6,7 +6,7 @@ import { getRandomPokemons } from './services/pokemonService';
 import type { Pokemon, GameState } from './types/game';
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_SERVER_URL = "https://oyster-app-xwu29.ondigitalocean.app/api";
+const SOCKET_SERVER_URL = "https://oyster-app-xwu29.ondigitalocean.app";
 
 interface ChatMessage {
   sender: 'player1' | 'player2' | 'system';
@@ -44,7 +44,10 @@ function App() {
   const chatMessagesRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const newSocket: Socket = io(SOCKET_SERVER_URL);
+    const newSocket: Socket = io(SOCKET_SERVER_URL, {
+      path: '/api/socket.io',
+      transports: ['websocket']
+    });
     setSocket(newSocket);
 
     newSocket.on('update-game-state', (newState: GameState) => {
