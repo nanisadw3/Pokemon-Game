@@ -8,6 +8,11 @@ import { io, Socket } from 'socket.io-client';
 
 const SOCKET_SERVER_URL = "https://oyster-app-xwu29.ondigitalocean.app";
 
+interface ChatMessage {
+  sender: 'player1' | 'player2' | 'system';
+  text: string;
+}
+
 function App() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -16,7 +21,7 @@ function App() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isGuessMode, setIsGuessMode] = useState(false);
   const [gameAlert, setGameAlert] = useState<{ title: string, message: string, onConfirm: () => void } | null>(null);
-  const [messages, setMessages] = useState<{ sender: 'player1' | 'player2' | 'system', text: string }[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatVisible, setChatVisible] = useState(true);
   const [isChatMinimized, setIsChatMinimized] = useState(false);
   const [chatInput, setChatInput] = useState('');
@@ -27,8 +32,8 @@ function App() {
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
 
   const [gameState, setGameState] = useState<GameState>({
-    board1: [], // Set A (J1 elige aquí, J2 adivina aquí)
-    board2: [], // Set B (J2 elige aquí, J1 adivina aquí)
+    board1: [],
+    board2: [],
     secretPokemon1: null,
     secretPokemon2: null,
     turn: 1,
@@ -39,14 +44,14 @@ function App() {
   const chatMessagesRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const newSocket = io(SOCKET_SERVER_URL);
+    const newSocket: Socket = io(SOCKET_SERVER_URL);
     setSocket(newSocket);
 
     newSocket.on('update-game-state', (newState: GameState) => {
       setGameState(newState);
     });
 
-    newSocket.on('receive-chat-msg', (msg: any) => {
+    newSocket.on('receive-chat-msg', (msg: ChatMessage) => {
       setMessages(prev => [...prev, msg]);
     });
 
@@ -149,8 +154,9 @@ function App() {
     if (gameState.phase !== 'playing' || gameState.turn !== myPlayerNum) return;
     
     const newState = { ...gameState };
-    // Importante: El J1 adivina sobre el board2, el J2 sobre el board1
     const board = myPlayerNum === 1 ? newState.board2 : newState.board1;
+    if (!board[index]) return;
+    
     const clickedPokemon = board[index].pokemon;
 
     if (isGuessMode) {
