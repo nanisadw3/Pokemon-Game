@@ -347,6 +347,10 @@ function App() {
           )}
         </div>
       ) : <button className="toggle-chat-btn" onClick={() => setChatVisible(true)}>💬 Chat</button>}
+
+      <footer className="app-footer">
+        <p>© 2026 Inaki Sobera Sotomayor</p>
+      </footer>
     </div>
   );
 }

@@ -557,7 +557,17 @@ h1 {
   transition: all 0.1s;
 }
 
-.game-alert-box button:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 #1d4ed8;
+/* FOOTER COPYRIGHT */
+.app-footer {
+  margin-top: 40px;
+  padding: 20px 0;
+  text-align: center;
+  opacity: 0.4;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+}
+
+.app-footer p {
+  margin: 0;
+  color: #94a3b8;
 }
