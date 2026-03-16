@@ -215,7 +215,12 @@ function App() {
   };
 
   const renderContent = () => {
-    if (loading) return <div className="loading"><div className="pokeball-loading"></div><p>Cargando aventura...</p></div>;
+    if (loading) return (
+      <div className="loading">
+        <div className="pokeball-loading"></div>
+        <h2 style={{marginTop: '20px', color: '#facc15'}}>Cargando aventura...</h2>
+      </div>
+    );
 
     if (gameState.phase === 'lobby') {
       return (
@@ -227,7 +232,13 @@ function App() {
               <button onClick={createGame} className="create-btn">CREAR</button>
               <button onClick={joinGame} className="join-btn">UNIRSE</button>
             </div>
-            {isWaitingForOpponent && <div className="waiting-msg"><div className="pokeball-loading mini"></div><p>Esperando rival... (SALA: {roomCode})</p></div>}
+            {isWaitingForOpponent && (
+              <div className="waiting-msg">
+                <div className="pokeball-loading"></div>
+                <p style={{fontWeight: 'bold', color: '#fff'}}>SALA: <span style={{color: '#facc15'}}>{roomCode}</span></p>
+                <p>Esperando a tu rival...</p>
+              </div>
+            )}
           </div>
         </div>
       );
