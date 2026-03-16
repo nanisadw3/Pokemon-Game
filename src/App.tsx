@@ -60,7 +60,7 @@ function App() {
 
     newSocket.on('game-ready', () => {
       setIsWaitingForOpponent(false);
-      initGameMultiplayer();
+      initGameSetup();
     });
 
     newSocket.on('error-msg', (err: string) => {
@@ -90,44 +90,37 @@ function App() {
     socket?.emit('join-game', roomCode);
   };
 
-  const initGameMultiplayer = async () => {
-    if (myPlayerNum === 2) return;
-
+  const initGameSetup = async () => {
     setLoading(true);
-    const allData = await getRandomPokemons(50);
-    const p1 = allData.slice(0, 25);
-    const p2 = allData.slice(25, 50);
+    const newData = await getRandomPokemons(25);
+    const boardItems = newData.map(p => ({ pokemon: p, isFlipped: false }));
     
-    const initialState: GameState = {
-      board1: p1.map(p => ({ pokemon: p, isFlipped: false })),
-      board2: p2.map(p => ({ pokemon: p, isFlipped: false })),
-      phase: 'setup',
-      winner: null,
-      secretPokemon1: null,
-      secretPokemon2: null,
-      turn: 1
-    };
-
-    setGameState(initialState);
-    syncState(initialState);
+    setGameState(prev => {
+      const newState = { 
+        ...prev, 
+        phase: 'setup',
+        [myPlayerNum === 1 ? 'board1' : 'board2']: boardItems 
+      };
+      syncState(newState);
+      return newState;
+    });
     setLoading(false);
   };
 
   const refreshBoard = async () => {
     setRefreshing(true);
     const newData = await getRandomPokemons(25);
-    const newState = { ...gameState };
-    
-    if (myPlayerNum === 1) {
-      newState.board1 = newData.map(p => ({ pokemon: p, isFlipped: false }));
-      newState.secretPokemon1 = null;
-    } else {
-      newState.board2 = newData.map(p => ({ pokemon: p, isFlipped: false }));
-      newState.secretPokemon2 = null;
-    }
+    const boardItems = newData.map(p => ({ pokemon: p, isFlipped: false }));
 
-    setGameState(newState);
-    syncState(newState);
+    setGameState(prev => {
+      const newState = { 
+        ...prev, 
+        [myPlayerNum === 1 ? 'board1' : 'board2']: boardItems,
+        [myPlayerNum === 1 ? 'secretPokemon1' : 'secretPokemon2']: null 
+      };
+      syncState(newState);
+      return newState;
+    });
     setRefreshing(false);
   };
 
