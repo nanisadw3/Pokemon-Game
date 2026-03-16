@@ -26,12 +26,15 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 0 20px;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 20px;
+  flex-shrink: 0;
 }
 
 .turn-indicator {
@@ -43,6 +46,24 @@ header {
   font-size: 1.3rem;
   box-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
   border: 3px solid #1e293b;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  header {
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+  }
+  
+  h1 {
+    font-size: 1.8rem;
+  }
+  
+  .turn-indicator {
+    font-size: 1.1rem;
+    padding: 5px 15px;
+  }
 }
 
 h1 {
@@ -264,7 +285,7 @@ h1 {
 }
 
 .anim-content h2 { font-size: 4rem; color: #ef4444; text-shadow: 4px 4px #000; }
-.anim-image { width: 400px; height: 400px; filter: drop-shadow(0 0 40px rgba(255,255,255,0.8)); animation: pokeAppear 1.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.anim-image { width: 500px; height: 500px; filter: drop-shadow(0 0 40px rgba(255,255,255,0.8)); animation: pokeAppear 1.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .anim-name { font-size: 5rem; text-transform: uppercase; color: #facc15; text-shadow: 6px 6px #3b82f6; }
 
 @keyframes pokeAppear {
@@ -286,7 +307,7 @@ h1 {
 
 @keyframes popIn { from { scale: 0.5; opacity: 0; } to { scale: 1; opacity: 1; } }
 
-.winner-image { width: 250px; height: 250px; object-fit: contain; animation: winnerDance 2s infinite ease-in-out; }
+.winner-image { width: 350px; height: 350px; object-fit: contain; animation: winnerDance 2s infinite ease-in-out; }
 @keyframes winnerDance { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-20px) scale(1.1); } }
 
 /* LOBBY */
