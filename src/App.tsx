@@ -17,6 +17,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
+  const [showSpy, setShowSpy] = useState(false);
   const [selectedAnim, setSelectedAnim] = useState<Pokemon | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isGuessMode, setIsGuessMode] = useState(false);
@@ -282,9 +283,14 @@ function App() {
             <div className="game-layout-single">
               <div className="player-section">
                 <div className="secret-display">
-                  <button onClick={() => setShowSecret(!showSecret)} className="reveal-btn">
-                    {showSecret ? 'Ocultar Mi Secreto' : 'Revelar Mi Secreto'}
-                  </button>
+                  <div className="secret-actions">
+                    <button onClick={() => setShowSecret(!showSecret)} className="reveal-btn">
+                      {showSecret ? '🙈 OCULTAR MI SECRETO' : '🔍 REVELAR MI SECRETO'}
+                    </button>
+                    <button onClick={() => setShowSpy(!showSpy)} className={`spy-btn ${showSpy ? 'active' : ''}`}>
+                      {showSpy ? '👁️ VOLVER AL JUEGO' : '👁️ VER MI TABLERO'}
+                    </button>
+                  </div>
                   {showSecret && (
                     <div className="secret-card-mini">
                       <PokemonCard pokemon={myPlayerNum === 1 ? gameState.secretPokemon1! : gameState.secretPokemon2!} isFlipped={false} onClick={() => {}} isSecret />
@@ -292,15 +298,27 @@ function App() {
                   )}
                 </div>
                 
-                <GameBoard 
-                  title={isGuessMode ? "¡ADIVINA!" : "Tablero del Rival"} 
-                  board={myPlayerNum === 1 ? gameState.board2 : gameState.board1} 
-                  onCardClick={handleCardClick} 
-                  showNames={false} 
-                />
+                {showSpy ? (
+                  <div className="spy-view-container">
+                    <GameBoard 
+                      title="Tu Tablero (Visto por el Rival)" 
+                      board={myPlayerNum === 1 ? gameState.board1 : gameState.board2} 
+                      onCardClick={() => {}} 
+                      showNames={false} 
+                    />
+                    <div className="spy-hint">⚠️ Estás viendo lo que tu rival ha tachado en tu tablero. No puedes mover nada aquí.</div>
+                  </div>
+                ) : (
+                  <GameBoard 
+                    title={isGuessMode ? "¡ADIVINA!" : "Tablero del Rival"} 
+                    board={myPlayerNum === 1 ? gameState.board2 : gameState.board1} 
+                    onCardClick={handleCardClick} 
+                    showNames={false} 
+                  />
+                )}
                 
                 <div className="action-buttons">
-                  {gameState.turn === myPlayerNum && (
+                  {gameState.turn === myPlayerNum && !showSpy && (
                     <>
                       <button onClick={handleEndTurn} className="done-btn">TERMINAR TURNO</button>
                       <button onClick={() => setIsGuessMode(!isGuessMode)} className={`finalize-btn ${isGuessMode ? 'guessing' : ''}`}>

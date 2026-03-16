@@ -165,15 +165,57 @@ h1 {
   position: relative;
 }
 
-.reveal-btn {
-  padding: 10px 25px;
-  background: #3b82f6;
+.secret-actions {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.reveal-btn, .spy-btn {
+  padding: 10px 20px;
   color: white;
   border: 3px solid #1e293b;
   border-radius: 30px;
   cursor: pointer;
   font-weight: 900;
+  transition: all 0.2s;
+}
+
+.reveal-btn {
+  background: #3b82f6;
   box-shadow: 0 4px 0 #1d4ed8;
+}
+
+.spy-btn {
+  background: #9333ea;
+  box-shadow: 0 4px 0 #6b21a8;
+}
+
+.spy-btn.active {
+  background: #22c55e;
+  box-shadow: 0 4px 0 #166534;
+  animation: pulse 2s infinite;
+}
+
+.spy-hint {
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(234, 179, 8, 0.2);
+  border: 1px solid #eab308;
+  border-radius: 10px;
+  color: #facc15;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.spy-view-container {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .secret-card-mini {
