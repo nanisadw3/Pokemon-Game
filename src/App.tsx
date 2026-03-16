@@ -287,8 +287,8 @@ function App() {
                     <button onClick={() => setShowSecret(!showSecret)} className="reveal-btn">
                       {showSecret ? '🙈 OCULTAR MI SECRETO' : '🔍 REVELAR MI SECRETO'}
                     </button>
-                    <button onClick={() => setShowSpy(!showSpy)} className={`spy-btn ${showSpy ? 'active' : ''}`}>
-                      {showSpy ? '👁️ VOLVER AL JUEGO' : '👁️ VER MI TABLERO'}
+                    <button onClick={() => setShowSpy(!showSpy)} className={`spy-btn ${showSpy ? 'active' : ''}`} title={showSpy ? 'Volver al juego' : 'Ver mi tablero'}>
+                      {showSpy ? '🙈' : '👁️'}
                     </button>
                   </div>
                   {showSecret && (
