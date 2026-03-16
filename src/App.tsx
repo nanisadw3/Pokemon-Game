@@ -333,14 +333,29 @@ function App() {
         )}
 
         {gameState.phase === 'gameover' && (
-          <div className="victory-overlay">
-            <div className="victory-card-epic">
-              <h1>{gameState.winner === myPlayerNum ? "🏆 ¡GANASTE! 🏆" : "💀 PERDISTE..."}</h1>
-              <img src={myPlayerNum === 1 ? gameState.secretPokemon2?.image : gameState.secretPokemon1?.image} className="winner-image" alt="Winner" />
-              <p>Era <span>{myPlayerNum === 1 ? gameState.secretPokemon2?.name : gameState.secretPokemon1?.name}</span></p>
-              <button onClick={() => window.location.reload()} className="play-again-btn">INICIO</button>
+          <>
+            <div className="confetti-container">
+              {[...Array(100)].map((_, i) => (
+                <div 
+                  key={i} 
+                  className={`confetti c${i % 6}`} 
+                  style={{ 
+                    left: `${Math.random() * 100}%`, 
+                    animationDelay: `${Math.random() * 4}s`,
+                    opacity: Math.random()
+                  }} 
+                />
+              ))}
             </div>
-          </div>
+            <div className="victory-overlay">
+              <div className="victory-card-epic">
+                <h1>{gameState.winner === myPlayerNum ? "🏆 ¡GANASTE! 🏆" : "💀 PERDISTE..."}</h1>
+                <img src={myPlayerNum === 1 ? gameState.secretPokemon2?.image : gameState.secretPokemon1?.image} className="winner-image" alt="Winner" />
+                <p>Era <span>{myPlayerNum === 1 ? gameState.secretPokemon2?.name : gameState.secretPokemon1?.name}</span></p>
+                <button onClick={() => window.location.reload()} className="play-again-btn">INICIO</button>
+              </div>
+            </div>
+          </>
         )}
 
         {chatVisible ? (
