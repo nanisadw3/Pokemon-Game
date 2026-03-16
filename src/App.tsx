@@ -60,7 +60,7 @@ function App() {
 
     newSocket.on('game-ready', () => {
       setIsWaitingForOpponent(false);
-      initGameSetup();
+      initGameMultiplayer();
     });
 
     newSocket.on('error-msg', (err: string) => {
@@ -90,20 +90,26 @@ function App() {
     socket?.emit('join-game', roomCode);
   };
 
-  const initGameSetup = async () => {
+  const initGameMultiplayer = async () => {
+    if (myPlayerNum === 2) return;
+
     setLoading(true);
-    const newData = await getRandomPokemons(25);
-    const boardItems = newData.map(p => ({ pokemon: p, isFlipped: false }));
+    const allData = await getRandomPokemons(50);
+    const p1 = allData.slice(0, 25);
+    const p2 = allData.slice(25, 50);
     
-    setGameState(prev => {
-      const newState = { 
-        ...prev, 
-        phase: 'setup',
-        [myPlayerNum === 1 ? 'board1' : 'board2']: boardItems 
-      };
-      syncState(newState);
-      return newState;
-    });
+    const initialState: GameState = {
+      board1: p1.map(p => ({ pokemon: p, isFlipped: false })),
+      board2: p2.map(p => ({ pokemon: p, isFlipped: false })),
+      phase: 'setup',
+      winner: null,
+      secretPokemon1: null,
+      secretPokemon2: null,
+      turn: 1
+    };
+
+    setGameState(initialState);
+    syncState(initialState);
     setLoading(false);
   };
 
@@ -274,7 +280,10 @@ function App() {
               ))}
             </div>
             {(myPlayerNum === 1 ? gameState.secretPokemon1 : gameState.secretPokemon2) && (
-              <div className="setup-waiting"><p>Esperando al otro jugador...</p></div>
+              <div className="setup-waiting">
+                <div className="pokeball-loading" style={{margin: '0 auto 10px'}}></div>
+                <p>Esperando al otro jugador...</p>
+              </div>
             )}
           </div>
         ) : (
