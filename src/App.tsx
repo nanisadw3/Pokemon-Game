@@ -334,19 +334,21 @@ function App() {
 
         {gameState.phase === 'gameover' && (
           <>
-            <div className="confetti-container">
-              {[...Array(100)].map((_, i) => (
-                <div 
-                  key={i} 
-                  className={`confetti c${i % 6}`} 
-                  style={{ 
-                    left: `${Math.random() * 100}%`, 
-                    animationDelay: `${Math.random() * 4}s`,
-                    opacity: Math.random()
-                  }} 
-                />
-              ))}
-            </div>
+            {gameState.winner === myPlayerNum && (
+              <div className="confetti-container">
+                {[...Array(100)].map((_, i) => (
+                  <div 
+                    key={i} 
+                    className={`confetti c${i % 6}`} 
+                    style={{ 
+                      left: `${Math.random() * 100}%`, 
+                      animationDelay: `${Math.random() * 4}s`,
+                      opacity: Math.random()
+                    }} 
+                  />
+                ))}
+              </div>
+            )}
             <div className="victory-overlay">
               <div className="victory-card-epic">
                 <h1>{gameState.winner === myPlayerNum ? "🏆 ¡GANASTE! 🏆" : "💀 PERDISTE..."}</h1>
