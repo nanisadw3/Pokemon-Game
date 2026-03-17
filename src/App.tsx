@@ -217,7 +217,7 @@ function App() {
     if (loading) return (
       <div className="loading">
         <div className="pokeball-loading"></div>
-        <h2 style={{marginTop: '20px', color: '#facc15'}}>Cargando aventura...</h2>
+        <h2>Cargando aventura...</h2>
       </div>
     );
 
@@ -234,8 +234,8 @@ function App() {
             {isWaitingForOpponent && (
               <div className="waiting-msg">
                 <div className="pokeball-loading"></div>
-                <p style={{fontWeight: 'bold', color: '#fff'}}>SALA: <span style={{color: '#facc15'}}>{roomCode}</span></p>
-                <p>Esperando a tu rival...</p>
+                <p>SALA: <span className="room-code-display">{roomCode}</span></p>
+                <p className="status-blink">Esperando a tu rival...</p>
               </div>
             )}
           </div>
