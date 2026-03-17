@@ -421,13 +421,68 @@ h1 {
 
 .create-btn:active, .join-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #333; }
 
-.loading {
-  height: 100vh;
+/* SETUP WAITING SCREEN */
+.setup-waiting-fullscreen {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #0f172a;
+  z-index: 15000;
+  text-align: center;
+  padding: 20px;
+}
+
+.setup-waiting-pokemon {
+  width: 280px;
+  height: 280px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 30px rgba(250, 204, 21, 0.4));
+  animation: floatPoke 3s infinite ease-in-out;
+  margin-bottom: 20px;
+}
+
+@keyframes floatPoke {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-15px) scale(1.05); }
+}
+
+.waiting-text-gradient {
+  font-size: 2.5rem;
+  font-weight: 900;
+  background: linear-gradient(90deg, #facc15, #f97316, #facc15);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 3s linear infinite, blink 1.5s infinite ease-in-out;
+  letter-spacing: 2px;
+  margin: 20px 0;
+  text-transform: uppercase;
+}
+
+@keyframes shine {
+  to { background-position: 200% center; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.98); }
+}
+
+.chosen-hint {
+  color: #94a3b8;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+.chosen-name {
+  color: #facc15;
+  font-size: 1.8rem;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
 }
 
 .pokeball-loading {

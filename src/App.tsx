@@ -267,10 +267,17 @@ function App() {
 
         {gameState.phase === 'setup' ? (
           (myPlayerNum === 1 ? gameState.secretPokemon1 : gameState.secretPokemon2) ? (
-            <div className="loading">
-              <div className="pokeball-loading"></div>
-              <h2 style={{marginTop: '20px', color: '#facc15'}}>Esperando al otro jugador...</h2>
-              <p>Tu rival está eligiendo su Pokémon secreto.</p>
+            <div className="setup-waiting-fullscreen">
+              <div className="pokeball-loading" style={{marginBottom: '40px'}}></div>
+              <img 
+                src={(myPlayerNum === 1 ? gameState.secretPokemon1 : gameState.secretPokemon2)?.image} 
+                className="setup-waiting-pokemon"
+                alt="Chosen Pokemon"
+              />
+              <p className="chosen-hint">HAS ELEGIDO A:</p>
+              <h1 className="chosen-name">{(myPlayerNum === 1 ? gameState.secretPokemon1 : gameState.secretPokemon2)?.name}</h1>
+              <h2 className="waiting-text-gradient">Esperando al Rival...</h2>
+              <p style={{color: '#94a3b8', maxWidth: '400px'}}>El duelo comenzará en cuanto tu oponente elija su Pokémon secreto.</p>
             </div>
           ) : (
             <div className="setup-container">
