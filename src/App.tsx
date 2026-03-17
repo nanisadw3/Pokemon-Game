@@ -307,7 +307,13 @@ function App() {
               <h2>Elige TU Pokémon secreto de este tablero</h2>
               <div className="selection-grid">
                 {(myPlayerNum === 1 ? gameState.board1 : gameState.board2).map(item => (
-                  <PokemonCard key={item.pokemon.id} pokemon={item.pokemon} isFlipped={false} onClick={() => handleSelectSecret(item.pokemon)} />
+                  <PokemonCard 
+                    key={item.pokemon.id} 
+                    pokemon={item.pokemon} 
+                    isFlipped={false} 
+                    onClick={() => handleSelectSecret(item.pokemon)} 
+                    showName={true}
+                  />
                 ))}
               </div>
             </div>
