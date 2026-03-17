@@ -165,46 +165,47 @@ function App() {
   const handleCardClick = (index: number) => {
     if (gameState.phase !== 'playing' || gameState.turn !== myPlayerNum) return;
     
-    setGameState(prev => {
-      const newState = { ...prev };
-      const board = myPlayerNum === 1 ? newState.board2 : newState.board1;
-      if (!board[index]) return prev;
-      
-      const clickedPokemon = board[index].pokemon;
+    const newState = { ...gameState };
+    const board = myPlayerNum === 1 ? [...newState.board2] : [...newState.board1];
+    
+    if (!board[index]) return;
+    const clickedPokemon = board[index].pokemon;
 
-      if (isGuessMode) {
-        const opponentSecret = myPlayerNum === 1 ? prev.secretPokemon2 : prev.secretPokemon1;
-        if (clickedPokemon.id === opponentSecret?.id) {
-          newState.phase = 'gameover';
-          newState.winner = myPlayerNum;
-        } else {
-          setGameAlert({
-            title: "¡ERROR!",
-            message: `El Pokémon de él no es ${clickedPokemon.name}.`,
-            onConfirm: () => {
-              setGameAlert(null);
-              setGameState(latest => {
-                const updatedState = { ...latest };
-                const currentBoard = myPlayerNum === 1 ? updatedState.board2 : updatedState.board1;
-                currentBoard[index].isFlipped = true;
-                updatedState.turn = myPlayerNum === 1 ? 2 : 1;
-                setIsGuessMode(false);
-                syncState(updatedState);
-                return updatedState;
-              });
-              sendSystemMsg(`¡Vaya! Fallaste al adivinar a ${clickedPokemon.name}.`);
-            }
-          });
-          return prev;
-        }
+    if (isGuessMode) {
+      const opponentSecret = myPlayerNum === 1 ? gameState.secretPokemon2 : gameState.secretPokemon1;
+      if (clickedPokemon.id === opponentSecret?.id) {
+        newState.phase = 'gameover';
+        newState.winner = myPlayerNum;
       } else {
-        board[index].isFlipped = !board[index].isFlipped;
-        sendSystemMsg(`${board[index].isFlipped ? 'Tachó' : 'Des-tachó'} a ${clickedPokemon.name}.`);
+        setGameAlert({
+          title: "¡ERROR!",
+          message: `El Pokémon de él no es ${clickedPokemon.name}.`,
+          onConfirm: () => {
+            setGameAlert(null);
+            const failState = { ...gameState };
+            const failBoard = myPlayerNum === 1 ? [...failState.board2] : [...failState.board1];
+            failBoard[index].isFlipped = true;
+            if (myPlayerNum === 1) failState.board2 = failBoard;
+            else failState.board1 = failBoard;
+            failState.turn = myPlayerNum === 1 ? 2 : 1;
+            setIsGuessMode(false);
+            setGameState(failState);
+            syncState(failState);
+            sendSystemMsg(`¡Vaya! Fallaste al adivinar a ${clickedPokemon.name}.`);
+          }
+        });
+        return;
       }
+    } else {
+      board[index].isFlipped = !board[index].isFlipped;
+      sendSystemMsg(`${board[index].isFlipped ? 'Tachó' : 'Des-tachó'} a ${clickedPokemon.name}.`);
+    }
 
-      syncState(newState);
-      return newState;
-    });
+    if (myPlayerNum === 1) newState.board2 = board;
+    else newState.board1 = board;
+
+    setGameState(newState);
+    syncState(newState);
   };
 
   const sendSystemMsg = (text: string) => {
