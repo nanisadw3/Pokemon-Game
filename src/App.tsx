@@ -266,26 +266,28 @@ function App() {
         )}
 
         {gameState.phase === 'setup' ? (
-          <div className="setup-container">
-            <div className="setup-header">
-              <h1>Preparación J{myPlayerNum}</h1>
-              <button onClick={refreshBoard} className={`refresh-btn ${refreshing ? 'spinning' : ''}`} disabled={refreshing}>
-                🔄 CAMBIAR POKÉMON
-              </button>
+          (myPlayerNum === 1 ? gameState.secretPokemon1 : gameState.secretPokemon2) ? (
+            <div className="loading">
+              <div className="pokeball-loading"></div>
+              <h2 style={{marginTop: '20px', color: '#facc15'}}>Esperando al otro jugador...</h2>
+              <p>Tu rival está eligiendo su Pokémon secreto.</p>
             </div>
-            <h2>Elige TU Pokémon secreto de este tablero</h2>
-            <div className="selection-grid">
-              {(myPlayerNum === 1 ? gameState.board1 : gameState.board2).map(item => (
-                <PokemonCard key={item.pokemon.id} pokemon={item.pokemon} isFlipped={false} onClick={() => handleSelectSecret(item.pokemon)} />
-              ))}
-            </div>
-            {(myPlayerNum === 1 ? gameState.secretPokemon1 : gameState.secretPokemon2) && (
-              <div className="setup-waiting">
-                <div className="pokeball-loading" style={{margin: '0 auto 10px'}}></div>
-                <p>Esperando al otro jugador...</p>
+          ) : (
+            <div className="setup-container">
+              <div className="setup-header">
+                <h1>Preparación J{myPlayerNum}</h1>
+                <button onClick={refreshBoard} className={`refresh-btn ${refreshing ? 'spinning' : ''}`} disabled={refreshing}>
+                  🔄 CAMBIAR POKÉMON
+                </button>
               </div>
-            )}
-          </div>
+              <h2>Elige TU Pokémon secreto de este tablero</h2>
+              <div className="selection-grid">
+                {(myPlayerNum === 1 ? gameState.board1 : gameState.board2).map(item => (
+                  <PokemonCard key={item.pokemon.id} pokemon={item.pokemon} isFlipped={false} onClick={() => handleSelectSecret(item.pokemon)} />
+                ))}
+              </div>
+            </div>
+          )
         ) : (
           <>
             <header>
@@ -326,7 +328,7 @@ function App() {
                 {showSpy ? (
                   <div className="spy-view-container">
                     <GameBoard 
-                      title="Tu Tablero (Visto por el Rival)" 
+                      title="Tablero del Rival" 
                       board={myPlayerNum === 1 ? gameState.board1 : gameState.board2} 
                       onCardClick={() => {}} 
                       showNames={false} 
