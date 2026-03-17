@@ -145,57 +145,66 @@ function App() {
     setSelectedAnim(pokemon);
     setTimeout(() => {
       setSelectedAnim(null);
-      const newState = { ...gameState };
-      if (myPlayerNum === 1) newState.secretPokemon1 = pokemon;
-      else newState.secretPokemon2 = pokemon;
+      
+      setGameState(prev => {
+        const newState = { ...prev };
+        if (myPlayerNum === 1) newState.secretPokemon1 = pokemon;
+        else newState.secretPokemon2 = pokemon;
 
-      if (newState.secretPokemon1 && newState.secretPokemon2) {
-        newState.phase = 'playing';
-        sendSystemMsg("¡Duelo iniciado! Adivina el Pokémon del rival.");
-      }
+        if (newState.secretPokemon1 && newState.secretPokemon2) {
+          newState.phase = 'playing';
+          sendSystemMsg("¡Duelo iniciado! Adivina el Pokémon del rival.");
+        }
 
-      setGameState(newState);
-      syncState(newState);
+        syncState(newState);
+        return newState;
+      });
     }, 2000);
   };
 
   const handleCardClick = (index: number) => {
     if (gameState.phase !== 'playing' || gameState.turn !== myPlayerNum) return;
     
-    const newState = { ...gameState };
-    const board = myPlayerNum === 1 ? newState.board2 : newState.board1;
-    if (!board[index]) return;
-    
-    const clickedPokemon = board[index].pokemon;
+    setGameState(prev => {
+      const newState = { ...prev };
+      const board = myPlayerNum === 1 ? newState.board2 : newState.board1;
+      if (!board[index]) return prev;
+      
+      const clickedPokemon = board[index].pokemon;
 
-    if (isGuessMode) {
-      const opponentSecret = myPlayerNum === 1 ? gameState.secretPokemon2 : gameState.secretPokemon1;
-      if (clickedPokemon.id === opponentSecret?.id) {
-        newState.phase = 'gameover';
-        newState.winner = myPlayerNum;
+      if (isGuessMode) {
+        const opponentSecret = myPlayerNum === 1 ? prev.secretPokemon2 : prev.secretPokemon1;
+        if (clickedPokemon.id === opponentSecret?.id) {
+          newState.phase = 'gameover';
+          newState.winner = myPlayerNum;
+        } else {
+          setGameAlert({
+            title: "¡ERROR!",
+            message: `El Pokémon de él no es ${clickedPokemon.name}.`,
+            onConfirm: () => {
+              setGameAlert(null);
+              setGameState(latest => {
+                const updatedState = { ...latest };
+                const currentBoard = myPlayerNum === 1 ? updatedState.board2 : updatedState.board1;
+                currentBoard[index].isFlipped = true;
+                updatedState.turn = myPlayerNum === 1 ? 2 : 1;
+                setIsGuessMode(false);
+                syncState(updatedState);
+                return updatedState;
+              });
+              sendSystemMsg(`¡Vaya! Fallaste al adivinar a ${clickedPokemon.name}.`);
+            }
+          });
+          return prev;
+        }
       } else {
-        setGameAlert({
-          title: "¡ERROR!",
-          message: `El Pokémon de él no es ${clickedPokemon.name}.`,
-          onConfirm: () => {
-            setGameAlert(null);
-            board[index].isFlipped = true;
-            newState.turn = myPlayerNum === 1 ? 2 : 1;
-            setIsGuessMode(false);
-            setGameState({ ...newState });
-            syncState(newState);
-            sendSystemMsg(`¡Vaya! Fallaste al adivinar a ${clickedPokemon.name}.`);
-          }
-        });
-        return;
+        board[index].isFlipped = !board[index].isFlipped;
+        sendSystemMsg(`${board[index].isFlipped ? 'Tachó' : 'Des-tachó'} a ${clickedPokemon.name}.`);
       }
-    } else {
-      board[index].isFlipped = !board[index].isFlipped;
-      sendSystemMsg(`${board[index].isFlipped ? 'Tachó' : 'Des-tachó'} a ${clickedPokemon.name}.`);
-    }
 
-    setGameState(newState);
-    syncState(newState);
+      syncState(newState);
+      return newState;
+    });
   };
 
   const sendSystemMsg = (text: string) => {
