@@ -32,7 +32,6 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
       <div className={styles.cardInner}>
         <div className={styles.cardFront}>
           <img src={pokemon.image} alt={pokemon.name} className={styles.pokemonImage} />
-          {showName && <p className={styles.pokemonName}>{pokemon.name}</p>}
         </div>
         <div className={styles.cardBack}>
           <div className={styles.pokeball}>

@@ -361,7 +361,7 @@ function App() {
                       title="Tablero del Rival" 
                       board={myPlayerNum === 1 ? gameState.board1 : gameState.board2} 
                       onCardClick={() => {}} 
-                      showNames={true} 
+                      showNames={false} 
                     />
                     <div className="spy-hint">⚠️ Estás viendo lo que tu rival ha tachado en tu tablero. No puedes mover nada aquí.</div>
                   </div>
@@ -370,7 +370,7 @@ function App() {
                     title={isGuessMode ? "¡ADIVINA!" : "Tablero del Rival"} 
                     board={myPlayerNum === 1 ? gameState.board2 : gameState.board1} 
                     onCardClick={handleCardClick} 
-                    showNames={true} 
+                    showNames={false} 
                   />
                 )}
                 

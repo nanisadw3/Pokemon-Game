@@ -55,7 +55,7 @@
 
 .pokemonImage {
   width: 95%;
-  height: 90%;
+  height: 85%;
   object-fit: contain;
   filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
   transition: transform 0.3s ease;
@@ -66,16 +66,7 @@
 }
 
 .pokemonName {
-  margin-top: 2px;
-  font-weight: 900;
-  text-transform: capitalize;
-  font-size: 0.85rem;
-  text-align: center;
-  color: #000;
-  width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: none;
 }
 
 .secret {
