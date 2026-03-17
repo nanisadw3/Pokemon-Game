@@ -6,7 +6,7 @@ import { getRandomPokemons } from './services/pokemonService';
 import type { Pokemon, GameState } from './types/game';
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_SERVER_URL = "http://localhost:3001";
+const SOCKET_SERVER_URL = "https://oyster-app-xwu29.ondigitalocean.app";
 
 interface ChatMessage {
   sender: 'player1' | 'player2' | 'system';
