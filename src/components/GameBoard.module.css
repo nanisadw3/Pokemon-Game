@@ -1,29 +1,28 @@
 .boardContainer {
-  padding: 15px;
+  padding: 20px;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 20px;
+  border-radius: 25px;
   backdrop-filter: blur(10px);
   border: 2px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
   width: 100%;
-  max-width: 550px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
 .title {
   text-align: center;
   color: #facc15;
-  margin-bottom: 15px;
-  font-size: 1.5rem;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
   text-shadow: 2px 2px #000;
   letter-spacing: 1px;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr); /* Forzamos 5 columnas siempre */
-  grid-template-rows: repeat(5, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 15px;
 }
 
 @media (max-width: 600px) {

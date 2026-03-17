@@ -312,7 +312,7 @@ function App() {
                     pokemon={item.pokemon} 
                     isFlipped={false} 
                     onClick={() => handleSelectSecret(item.pokemon)} 
-                    showName={true}
+                    showName={false}
                   />
                 ))}
               </div>

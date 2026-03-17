@@ -8,7 +8,7 @@
 .card {
   perspective: 1000px;
   width: 100%;
-  aspect-ratio: 1/1.4; /* Hacemos la carta más alta para que quepa el nombre */
+  aspect-ratio: 1/1.2;
   cursor: pointer;
   transition: transform 0.3s ease;
 }
@@ -41,7 +41,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between; /* Distribuimos espacio entre imagen y nombre */
+  justify-content: center;
   padding: 8px;
   background: var(--card-bg);
   border: 4px solid #333;
@@ -51,12 +51,11 @@
 .cardBack {
   background: #f1f1f1;
   transform: rotateY(180deg);
-  justify-content: center;
 }
 
 .pokemonImage {
-  width: 100%;
-  height: 70%; /* Reducimos imagen al 70% para dejar sitio al nombre */
+  width: 95%;
+  height: 90%;
   object-fit: contain;
   filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
   transition: transform 0.3s ease;
@@ -67,19 +66,16 @@
 }
 
 .pokemonName {
-  margin-top: 5px;
+  margin-top: 2px;
   font-weight: 900;
   text-transform: capitalize;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   text-align: center;
-  color: #000; /* Negro puro para máximo contraste */
+  color: #000;
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  background: rgba(0,0,0,0.05); /* Fondo suave para resaltar */
-  border-radius: 4px;
-  padding: 2px 0;
 }
 
 .secret {
