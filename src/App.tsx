@@ -77,6 +77,13 @@ function App() {
     }
   }, [messages, isChatMinimized, chatVisible]);
 
+  // Minimizar chat automáticamente al iniciar el duelo
+  useEffect(() => {
+    if (gameState.phase === 'playing') {
+      setIsChatMinimized(true);
+    }
+  }, [gameState.phase]);
+
   const createGame = () => {
     if (!roomCode.trim()) return alert("Escribe un código de sala");
     setMyPlayerNum(1);
