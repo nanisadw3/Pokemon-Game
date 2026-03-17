@@ -350,7 +350,13 @@ function App() {
                   </div>
                   {showSecret && (
                     <div className="secret-card-mini">
-                      <PokemonCard pokemon={myPlayerNum === 1 ? gameState.secretPokemon1! : gameState.secretPokemon2!} isFlipped={false} onClick={() => {}} isSecret />
+                      <PokemonCard 
+                        pokemon={myPlayerNum === 1 ? gameState.secretPokemon1! : gameState.secretPokemon2!} 
+                        isFlipped={false} 
+                        onClick={() => {}} 
+                        isSecret 
+                        showName={true} 
+                      />
                     </div>
                   )}
                 </div>
