@@ -136,6 +136,20 @@ h1 {
   box-shadow: 0 15px 40px rgba(0,0,0,0.5);
 }
 
+@media (max-width: 900px) {
+  .selection-grid {
+    gap: 15px;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .selection-grid {
+    gap: 10px;
+    padding: 10px;
+  }
+}
+
 .game-layout-single {
   display: flex;
   justify-content: center;
