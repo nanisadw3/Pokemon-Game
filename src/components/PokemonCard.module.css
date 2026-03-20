@@ -92,12 +92,21 @@
   .pokemonName {
     display: none !important;
   }
+  /* Excepción: Mostrar nombre si es la carta secreta revelada */
+  .secret .pokemonName {
+    display: block !important;
+    font-size: 0.8rem;
+    margin-top: 2px;
+  }
   .cardFront {
     justify-content: center;
     padding: 5px;
   }
   .pokemonImage {
     height: 85%;
+  }
+  .secret .pokemonImage {
+    height: 65%; /* Reducir imagen para que quepa el nombre en la secreta */
   }
 }
 
