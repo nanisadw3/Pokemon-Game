@@ -51,7 +51,20 @@ function App() {
     setSocket(newSocket);
 
     newSocket.on('update-game-state', (newState: GameState) => {
-      setGameState(newState);
+      setGameState(prev => {
+        const mergedState = { ...prev, ...newState };
+        
+        // Preservar secretos si ya los tenemos localmente y la actualización no los trae
+        if (prev.secretPokemon1 && !newState.secretPokemon1) mergedState.secretPokemon1 = prev.secretPokemon1;
+        if (prev.secretPokemon2 && !newState.secretPokemon2) mergedState.secretPokemon2 = prev.secretPokemon2;
+        
+        // Forzar transición a 'playing' si ambos secretos están presentes
+        if (mergedState.secretPokemon1 && mergedState.secretPokemon2 && mergedState.phase === 'setup') {
+          mergedState.phase = 'playing';
+        }
+        
+        return mergedState;
+      });
     });
 
     newSocket.on('receive-chat-msg', (msg: ChatMessage) => {
@@ -364,7 +377,7 @@ function App() {
                 {showSpy ? (
                   <div className="spy-view-container">
                     <GameBoard 
-                      title="Tablero del Rival" 
+                      title="Mi Tablero" 
                       board={myPlayerNum === 1 ? gameState.board1 : gameState.board2} 
                       onCardClick={() => {}} 
                       showNames={true} 
