@@ -396,7 +396,7 @@ function App() {
                 )}
                 
                 <div className="action-buttons">
-                  {gameState.turn === myPlayerNum && !showSpy && (
+                  {gameState.turn === myPlayerNum && (
                     <>
                       <button onClick={handleEndTurn} className="done-btn">TERMINAR TURNO</button>
                       <button onClick={() => setIsGuessMode(!isGuessMode)} className={`finalize-btn ${isGuessMode ? 'guessing' : ''}`}>

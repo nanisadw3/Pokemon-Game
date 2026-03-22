@@ -74,7 +74,7 @@ io.on('connection', (socket) => {
 
       // Fase, Turno y Ganador: El último cambio válido manda
       if (incoming.phase) merged.phase = incoming.phase;
-      if (incoming.turn) merged.turn = incoming.turn;
+      if (incoming.turn !== undefined && incoming.turn !== current.turn) merged.turn = incoming.turn;
       if (incoming.winner !== undefined) merged.winner = incoming.winner;
 
       // Secretos: Solo el dueño puede establecer su propio secreto
