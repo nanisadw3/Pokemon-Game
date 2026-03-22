@@ -54,12 +54,13 @@ function App() {
       setGameState(prev => {
         const mergedState = { ...prev, ...newState };
         
-        // Preservar secretos si ya los tenemos localmente y la actualización no los trae
+        // Preservar secretos si ya los tenemos localmente
         if (prev.secretPokemon1 && !newState.secretPokemon1) mergedState.secretPokemon1 = prev.secretPokemon1;
         if (prev.secretPokemon2 && !newState.secretPokemon2) mergedState.secretPokemon2 = prev.secretPokemon2;
         
-        // Forzar transición a 'playing' si ambos secretos están presentes
-        if (mergedState.secretPokemon1 && mergedState.secretPokemon2 && mergedState.phase === 'setup') {
+        // SOLO pasamos a 'playing' si ambos secretos existen Y NO estamos viendo la animación
+        // Si estamos viendo la animación, el setTimeout de handleSelectSecret se encargará de cambiar la fase
+        if (mergedState.secretPokemon1 && mergedState.secretPokemon2 && mergedState.phase === 'setup' && !selectedAnim) {
           mergedState.phase = 'playing';
         }
         
