@@ -170,28 +170,26 @@ function App() {
   const handleSelectSecret = (pokemon: Pokemon) => {
     setSelectedAnim(pokemon);
     
-    // Sincronizamos los secretos al servidor de inmediato para evitar errores
+    // Sincronizamos los secretos al servidor de inmediato
     setGameState(prev => {
       const newState = { ...prev };
       if (myPlayerNum === 1) newState.secretPokemon1 = pokemon;
       else newState.secretPokemon2 = pokemon;
-
-      // Importante: No cambiamos la fase a 'playing' aquí mismo localmente
-      // para que la animación se vea sobre el fondo de 'setup'
       syncState(newState);
       return newState;
     });
 
-    // Esperamos 2 segundos a que termine la animación antes de pasar al tablero
+    // Esperamos 2.5 segundos para asegurar que la animación se vea completa
     setTimeout(() => {
       setSelectedAnim(null);
       setGameState(prev => {
+        // Solo pasamos a playing si ya tenemos ambos secretos
         if (prev.secretPokemon1 && prev.secretPokemon2) {
           return { ...prev, phase: 'playing' };
         }
         return prev;
       });
-    }, 2000);
+    }, 2500);
   };
 
   const handleCardClick = (index: number) => {
@@ -294,22 +292,22 @@ function App() {
 
     return (
       <div className="app-container">
-        {gameAlert && (
-          <div className="game-alert-overlay">
-            <div className="game-alert-box">
-              <h3>{gameAlert.title}</h3>
-              <p>{gameAlert.message}</p>
-              <button onClick={gameAlert.onConfirm}>CONTINUAR</button>
-            </div>
-          </div>
-        )}
-
         {selectedAnim && (
           <div className="selection-overlay">
             <div className="anim-content">
               <h2>¡TE ELIJO A TI!</h2>
               <img src={selectedAnim.image} alt={selectedAnim.name} className="anim-image" />
               <h1 className="anim-name">{selectedAnim.name}</h1>
+            </div>
+          </div>
+        )}
+
+        {gameAlert && (
+          <div className="game-alert-overlay">
+            <div className="game-alert-box">
+              <h3>{gameAlert.title}</h3>
+              <p>{gameAlert.message}</p>
+              <button onClick={gameAlert.onConfirm}>CONTINUAR</button>
             </div>
           </div>
         )}
