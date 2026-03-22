@@ -32,6 +32,18 @@ function App() {
   const [myPlayerNum, setMyPlayerNum] = useState<1 | 2 | null>(null);
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
 
+  // Refs para que los sockets siempre tengan el valor real actualizado
+  const myPlayerNumRef = useRef<1 | 2 | null>(null);
+  const selectedAnimRef = useRef<Pokemon | null>(null);
+
+  useEffect(() => {
+    myPlayerNumRef.current = myPlayerNum;
+  }, [myPlayerNum]);
+
+  useEffect(() => {
+    selectedAnimRef.current = selectedAnim;
+  }, [selectedAnim]);
+
   const [gameState, setGameState] = useState<GameState>({
     board1: [],
     board2: [],
@@ -59,8 +71,8 @@ function App() {
         if (prev.secretPokemon2 && !newState.secretPokemon2) mergedState.secretPokemon2 = prev.secretPokemon2;
         
         // SOLO pasamos a 'playing' si ambos secretos existen Y NO estamos viendo la animación
-        // Si estamos viendo la animación, el setTimeout de handleSelectSecret se encargará de cambiar la fase
-        if (mergedState.secretPokemon1 && mergedState.secretPokemon2 && mergedState.phase === 'setup' && !selectedAnim) {
+        // Usamos el Ref para tener el valor real actual
+        if (mergedState.secretPokemon1 && mergedState.secretPokemon2 && mergedState.phase === 'setup' && !selectedAnimRef.current) {
           mergedState.phase = 'playing';
         }
         

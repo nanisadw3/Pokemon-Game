@@ -86,7 +86,7 @@ io.on('connection', (socket) => {
       if (current.secretPokemon2 && !merged.secretPokemon2) merged.secretPokemon2 = current.secretPokemon2;
 
       // Tablero 1: P1 es dueño del contenido (Pokémon), P2 es dueño de las tachaduras (flips)
-      if (incoming.board1) {
+      if (incoming.board1 && merged.board1) {
         merged.board1 = merged.board1.map((item, i) => {
           const incItem = incoming.board1[i];
           return {
@@ -94,10 +94,12 @@ io.on('connection', (socket) => {
             isFlipped: playerNum === 2 ? (incItem?.isFlipped ?? item.isFlipped) : item.isFlipped
           };
         });
+      } else if (incoming.board1) {
+        merged.board1 = incoming.board1;
       }
 
       // Tablero 2: P2 es dueño del contenido, P1 es dueño de las tachaduras
-      if (incoming.board2) {
+      if (incoming.board2 && merged.board2) {
         merged.board2 = merged.board2.map((item, i) => {
           const incItem = incoming.board2[i];
           return {
@@ -105,6 +107,8 @@ io.on('connection', (socket) => {
             isFlipped: playerNum === 1 ? (incItem?.isFlipped ?? item.isFlipped) : item.isFlipped
           };
         });
+      } else if (incoming.board2) {
+        merged.board2 = incoming.board2;
       }
 
       activeGames[roomCode].gameState = merged;
