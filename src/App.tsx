@@ -138,7 +138,7 @@ function App() {
       winner: null,
       secretPokemon1: null,
       secretPokemon2: null,
-      turn: 1
+      turn: Math.random() < 0.5 ? 1 : 2
     };
 
     setGameState(initialState);
