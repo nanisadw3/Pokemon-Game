@@ -40,6 +40,12 @@ io.on('connection', (socket) => {
         socket.join(roomCode);
         game.players.push(socket.id);
         io.to(roomCode).emit('game-ready', { players: game.players });
+        
+        // Si ya hay un estado de juego (ej. por reconexión o inicio rápido), lo enviamos
+        if (game.gameState) {
+          socket.emit('update-game-state', game.gameState);
+        }
+        
         console.log(`Usuario unido a sala: ${roomCode}`);
       } else {
         socket.emit('error-msg', 'La sala está llena.');
@@ -52,9 +58,23 @@ io.on('connection', (socket) => {
   // Sincronizar el estado del juego (tableros, secretos, etc.)
   socket.on('sync-game-state', ({ roomCode, gameState }) => {
     if (activeGames[roomCode]) {
-      activeGames[roomCode].gameState = gameState;
-      // Enviamos el estado a TODOS en la sala menos al que lo mandó
-      socket.to(roomCode).emit('update-game-state', gameState);
+      const currentGameState = activeGames[roomCode].gameState || {};
+      
+      // Fusionar estados para no perder secretos de otros jugadores
+      const mergedState = { ...currentGameState, ...gameState };
+      
+      // Preservar secretos si el nuevo estado viene con nulls (típico si un jugador aún no tiene el secreto del otro)
+      if (currentGameState.secretPokemon1 && !gameState.secretPokemon1) mergedState.secretPokemon1 = currentGameState.secretPokemon1;
+      if (currentGameState.secretPokemon2 && !gameState.secretPokemon2) mergedState.secretPokemon2 = currentGameState.secretPokemon2;
+      
+      // No permitir volver de 'playing' a 'setup' si ya se inició
+      if (currentGameState.phase === 'playing' && gameState.phase === 'setup') {
+        mergedState.phase = 'playing';
+      }
+
+      activeGames[roomCode].gameState = mergedState;
+      // Enviamos el estado fusionado a TODOS en la sala menos al que lo mandó
+      socket.to(roomCode).emit('update-game-state', mergedState);
     }
   });
 

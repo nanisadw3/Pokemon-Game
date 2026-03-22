@@ -348,15 +348,15 @@ function App() {
                     <button onClick={() => setShowSpy(!showSpy)} className={`spy-btn ${showSpy ? 'active' : ''}`} title={showSpy ? 'Volver al juego' : 'Ver mi tablero'}>
                       {showSpy ? (
                         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      ) : (
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M2 10a11 11 0 0 0 20 0" />
                           <path d="m7 15-1.5 3" />
                           <path d="m12 17v3" />
                           <path d="m17 15 1.5 3" />
-                        </svg>
-                      ) : (
-                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                          <circle cx="12" cy="12" r="3" />
                         </svg>
                       )}
                     </button>
@@ -377,7 +377,7 @@ function App() {
                 {showSpy ? (
                   <div className="spy-view-container">
                     <GameBoard 
-                      title="Mi Tablero" 
+                      title="Tablero del Rival" 
                       board={myPlayerNum === 1 ? gameState.board1 : gameState.board2} 
                       onCardClick={() => {}} 
                       showNames={true} 
@@ -386,7 +386,7 @@ function App() {
                   </div>
                 ) : (
                   <GameBoard 
-                    title={isGuessMode ? "¡ADIVINA!" : "Tablero del Rival"} 
+                    title={isGuessMode ? "¡ADIVINA!" : "Mi Tablero"} 
                     board={myPlayerNum === 1 ? gameState.board2 : gameState.board1} 
                     onCardClick={handleCardClick} 
                     showNames={true} 
