@@ -157,23 +157,27 @@ function App() {
   const handleSelectSecret = (pokemon: Pokemon) => {
     setSelectedAnim(pokemon);
     
-    // Actualizar estado local y sincronizar inmediatamente para evitar race conditions
+    // Sincronizamos los secretos al servidor de inmediato para evitar errores
     setGameState(prev => {
       const newState = { ...prev };
       if (myPlayerNum === 1) newState.secretPokemon1 = pokemon;
       else newState.secretPokemon2 = pokemon;
 
-      if (newState.secretPokemon1 && newState.secretPokemon2) {
-        newState.phase = 'playing';
-        sendSystemMsg("¡Duelo iniciado! Adivina el Pokémon del rival.");
-      }
-
+      // Importante: No cambiamos la fase a 'playing' aquí mismo localmente
+      // para que la animación se vea sobre el fondo de 'setup'
       syncState(newState);
       return newState;
     });
 
+    // Esperamos 2 segundos a que termine la animación antes de pasar al tablero
     setTimeout(() => {
       setSelectedAnim(null);
+      setGameState(prev => {
+        if (prev.secretPokemon1 && prev.secretPokemon2) {
+          return { ...prev, phase: 'playing' };
+        }
+        return prev;
+      });
     }, 2000);
   };
 
