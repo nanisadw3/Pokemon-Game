@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import './App.css';
 import GameBoard from './components/GameBoard';
 import PokemonCard from './components/PokemonCard';
-import { getRandomPokemons, getPokemonByName } from './services/pokemonService';
+import { getRandomPokemons, getPokemonByName, getAllPokemonNames, getPokemonDetails } from './services/pokemonService';
 import type { Pokemon, GameState } from './types/game';
 import { io, Socket } from 'socket.io-client';
 
@@ -27,6 +27,7 @@ function App() {
   const [isChatMinimized, setIsChatMinimized] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [allNames, setAllNames] = useState<{name: string, url: string}[]>([]);
   const [globalResults, setGlobalResults] = useState<Pokemon[]>([]);
   const [isSearchingGlobal, setIsSearchingGlobal] = useState(false);
   
@@ -46,22 +47,30 @@ function App() {
   });
 
   useEffect(() => {
+    const fetchAll = async () => {
+      const names = await getAllPokemonNames();
+      setAllNames(names);
+    };
+    fetchAll();
+  }, []);
+
+  useEffect(() => {
     const timer = setTimeout(async () => {
       if (searchTerm.length > 2 && gameState.phase === 'setup') {
         setIsSearchingGlobal(true);
-        const pokemon = await getPokemonByName(searchTerm);
-        if (pokemon) {
-          setGlobalResults([pokemon]);
-        } else {
-          setGlobalResults([]);
-        }
+        const filtered = allNames
+          .filter(p => p.name.includes(searchTerm.toLowerCase()))
+          .slice(0, 10);
+        
+        const details = await Promise.all(filtered.map(p => getPokemonDetails(p.url)));
+        setGlobalResults(details.filter(p => p !== null) as Pokemon[]);
         setIsSearchingGlobal(false);
       } else {
         setGlobalResults([]);
       }
-    }, 600);
+    }, 500);
     return () => clearTimeout(timer);
-  }, [searchTerm, gameState.phase]);
+  }, [searchTerm, gameState.phase, allNames]);
 
   // Refs para que los sockets siempre tengan el valor real actualizado
   const myPlayerNumRef = useRef<1 | 2 | null>(null);
@@ -362,20 +371,27 @@ function App() {
           ) : (
             <div className="setup-container">
               <div className="setup-header">
-                <h1>Preparación J{myPlayerNum}</h1>
-                <div className="setup-actions">
-                  <div className="search-container">
-                    <input 
-                      type="text" 
-                      placeholder="🔎 Buscar en todo el mundo..." 
-                      className="search-input" 
-                      value={searchTerm} 
-                      onChange={(e) => setSearchTerm(e.target.value)} 
-                    />
-                    {isSearchingGlobal && <div className="search-loader"></div>}
+                <div className="setup-title-box">
+                  <h1>Preparación J{myPlayerNum}</h1>
+                  <p>Selecciona tu Pokémon secreto del tablero o busca uno nuevo</p>
+                </div>
+                
+                <div className="setup-controls-row">
+                  <div className="search-bar-group">
+                    <div className="search-container">
+                      <input 
+                        type="text" 
+                        placeholder="🔎 ¿A quién buscas? (Pika, Char, Mew...)" 
+                        className="search-input" 
+                        value={searchTerm} 
+                        onChange={(e) => setSearchTerm(e.target.value)} 
+                      />
+                      {isSearchingGlobal && <div className="search-loader"></div>}
+                    </div>
                   </div>
-                  <button onClick={refreshBoard} className={`refresh-btn ${refreshing ? 'spinning' : ''}`} disabled={refreshing}>
-                    🔄 CAMBIAR TODO
+                  
+                  <button onClick={refreshBoard} className={`refresh-btn-large ${refreshing ? 'spinning' : ''}`} disabled={refreshing}>
+                    🔄 CAMBIAR TODO EL TABLERO
                   </button>
                 </div>
               </div>

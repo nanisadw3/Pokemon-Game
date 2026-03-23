@@ -36,6 +36,28 @@ export async function getPokemonByName(name: string): Promise<Pokemon | null> {
       name: data.name,
       image: data.sprites.other['official-artwork'].front_default,
       types: data.types.map((t: any) => t.type.name),
+  };
+}
+
+export async function getAllPokemonNames(): Promise<{ name: string, url: string }[]> {
+  try {
+    const res = await fetch(`${BASE_URL}?limit=1025`);
+    const data = await res.json();
+    return data.results;
+  } catch (error) {
+    return [];
+  }
+}
+
+export async function getPokemonDetails(url: string): Promise<Pokemon | null> {
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    return {
+      id: data.id,
+      name: data.name,
+      image: data.sprites.other['official-artwork'].front_default,
+      types: data.types.map((t: any) => t.type.name),
     };
   } catch (error) {
     return null;
