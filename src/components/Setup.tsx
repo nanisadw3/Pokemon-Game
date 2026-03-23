@@ -79,7 +79,7 @@ const Setup: React.FC<SetupProps> = ({
                     isFlipped={false} 
                     onClick={() => handleSelectSecret(item.pokemon)} 
                     showName={true}
-                    animationDelay={`${idx * 0.05}s`}
+                    animationDelay={`${idx * 0.02}s`}
                   />
                 ))}
               {/* Luego resultados globales (si no están ya en el tablero) */}
@@ -92,7 +92,7 @@ const Setup: React.FC<SetupProps> = ({
                     isFlipped={false} 
                     onClick={() => handleSelectSecret(gp)} 
                     showName={true}
-                    animationDelay={`${(idx + board.filter(item => item.pokemon.name.toLowerCase().includes(searchTerm.toLowerCase())).length) * 0.05}s`}
+                    animationDelay={`${(idx + board.filter(item => item.pokemon.name.toLowerCase().includes(searchTerm.toLowerCase())).length) * 0.02}s`}
                   />
                 ))}
             </div>
@@ -113,7 +113,7 @@ const Setup: React.FC<SetupProps> = ({
                   isFlipped={false} 
                   onClick={() => handleSelectSecret(item.pokemon)} 
                   showName={true}
-                  animationDelay={`${idx * 0.05}s`}
+                  animationDelay={`${idx * 0.02}s`}
                 />
               ))}
             </div>
