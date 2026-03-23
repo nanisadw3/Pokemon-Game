@@ -36,6 +36,12 @@ function App() {
   const [myPlayerNum, setMyPlayerNum] = useState<1 | 2 | null>(null);
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
 
+  const roomCodeRef = useRef('');
+
+  useEffect(() => {
+    roomCodeRef.current = roomCode;
+  }, [roomCode]);
+
   const [gameState, setGameState] = useState<GameState>({
     board1: [],
     board2: [],
@@ -130,7 +136,7 @@ function App() {
         // El Jugador 2 pide el estado por si acaso se perdió el primer mensaje
         // O espera a que el J1 termine de cargar e inicializar
         setTimeout(() => {
-          newSocket.emit('request-game-state', roomCode);
+          newSocket.emit('request-game-state', roomCodeRef.current);
         }, 3000);
 
         // Fallback de seguridad: quitar pantalla de carga tras 8 segundos si no hay respuesta
@@ -149,7 +155,7 @@ function App() {
     });
 
     return () => { newSocket.disconnect(); };
-  }, [roomCode]); // Añadimos roomCode a las dependencias para que request-game-state funcione
+  }, []); // Revertimos a dependencias vacías para evitar reconexiones al escribir
 
   const initGameMultiplayer = async (pNum: number | null) => {
     if (pNum !== 1) return;
