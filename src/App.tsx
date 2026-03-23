@@ -370,28 +370,26 @@ function App() {
             </div>
           ) : (
             <div className="setup-container">
-              <div className="setup-header">
-                <div className="setup-title-box">
-                  <h1>Preparación J{myPlayerNum}</h1>
-                  <p>Selecciona tu Pokémon secreto del tablero o busca uno nuevo</p>
-                </div>
+              <div className="setup-hero-section">
+                <h1>Preparación Jugador {myPlayerNum}</h1>
+                <p>Busca cualquier Pokémon o elige uno del tablero</p>
                 
-                <div className="setup-controls-row">
-                  <div className="search-bar-group">
-                    <div className="search-container">
-                      <input 
-                        type="text" 
-                        placeholder="🔎 ¿A quién buscas? (Pika, Char, Mew...)" 
-                        className="search-input" 
-                        value={searchTerm} 
-                        onChange={(e) => setSearchTerm(e.target.value)} 
-                      />
-                      {isSearchingGlobal && <div className="search-loader"></div>}
-                    </div>
+                <div className="main-search-wrapper">
+                  <div className="search-container">
+                    <input 
+                      type="text" 
+                      placeholder="🔎 Escribe el nombre de un Pokémon (Pika, Char, Mew...)" 
+                      className="search-input-main" 
+                      value={searchTerm} 
+                      onChange={(e) => setSearchTerm(e.target.value)} 
+                    />
+                    {isSearchingGlobal && <div className="search-loader-main"></div>}
                   </div>
-                  
-                  <button onClick={refreshBoard} className={`refresh-btn-large ${refreshing ? 'spinning' : ''}`} disabled={refreshing}>
-                    🔄 CAMBIAR TODO EL TABLERO
+                </div>
+
+                <div className="setup-secondary-actions">
+                  <button onClick={refreshBoard} className={`refresh-btn-secondary ${refreshing ? 'spinning' : ''}`} disabled={refreshing}>
+                    🔄 CAMBIAR OPCIONES DEL TABLERO
                   </button>
                 </div>
               </div>
