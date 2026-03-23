@@ -614,14 +614,7 @@ function App() {
     );
   };
 
-  return (
-    <div className="main-wrapper">
-      {renderContent()}
-      <footer className="app-footer">
-        <p>© 2026 Inaki Sobera Sotomayor</p>
-      </footer>
-    </div>
-  );
+  return renderContent();
 }
 
 export default App;
