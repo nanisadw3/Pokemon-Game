@@ -155,9 +155,16 @@ function App() {
     setLoading(true);
 
     try {
-      const extraData = await getRandomPokemons(48, [state.secretPokemon1!.id, state.secretPokemon2!.id]);
-      const extraForBoard2 = extraData.slice(0, 24);
-      const extraForBoard1 = extraData.slice(24, 48);
+      // Pedimos una muestra mucho más grande de Pokémon aleatorios para que los tableros sean variados
+      // Queremos llenar 2 tableros de 25-30 pokemons cada uno con opciones únicas
+      const totalNeeded = 60; 
+      const extraData = await getRandomPokemons(totalNeeded, [state.secretPokemon1!.id, state.secretPokemon2!.id]);
+      
+      // Mezclamos bien y repartimos
+      const shuffledExtra = [...extraData].sort(() => Math.random() - 0.5);
+      const extraForBoard2 = shuffledExtra.slice(0, 24);
+      const extraForBoard1 = shuffledExtra.slice(24, 48);
+      
       const pool2 = [state.secretPokemon2!, ...extraForBoard2].sort(() => Math.random() - 0.5);
       const pool1 = [state.secretPokemon1!, ...extraForBoard1].sort(() => Math.random() - 0.5);
 
