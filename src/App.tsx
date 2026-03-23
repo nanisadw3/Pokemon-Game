@@ -56,11 +56,12 @@ function App() {
 
   useEffect(() => {
     const timer = setTimeout(async () => {
-      if (searchTerm.length > 2 && gameState.phase === 'setup') {
+      if (searchTerm.trim().length > 0 && gameState.phase === 'setup') {
         setIsSearchingGlobal(true);
+        // Filtrar por nombre (ahora permite desde 1 letra y muestra hasta 30)
         const filtered = allNames
-          .filter(p => p.name.includes(searchTerm.toLowerCase()))
-          .slice(0, 10);
+          .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase().trim()))
+          .slice(0, 30);
         
         const details = await Promise.all(filtered.map(p => getPokemonDetails(p.url)));
         setGlobalResults(details.filter(p => p !== null) as Pokemon[]);
@@ -68,7 +69,7 @@ function App() {
       } else {
         setGlobalResults([]);
       }
-    }, 500);
+    }, 400); // Reducimos un poco el delay para que sea más rápido
     return () => clearTimeout(timer);
   }, [searchTerm, gameState.phase, allNames]);
 
