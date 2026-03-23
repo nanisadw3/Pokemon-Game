@@ -174,15 +174,19 @@ function App() {
     setLoading(true);
 
     try {
-      // Necesitamos 24 Pokémon extra comunes para rellenar
-      const decoysNeeded = 24; 
-      const commonDecoys = await getRandomPokemons(decoysNeeded, [state.secretPokemon1!.id, state.secretPokemon2!.id]);
+      // Necesitamos 24 Pokémon extra para CADA tablero (total 48 diferentes)
+      // Excluimos los dos secretos de la lista general para que no se repitan como decoys
+      const totalDecoysNeeded = 48; 
+      const allDecoys = await getRandomPokemons(totalDecoysNeeded, [state.secretPokemon1!.id, state.secretPokemon2!.id]);
       
-      // Tablero 1 (visto por P2): Contiene secreto P1 + 24 decoys. NO contiene secreto P2.
-      const board1Pool = [state.secretPokemon1!, ...commonDecoys].sort(() => Math.random() - 0.5);
+      const decoysP1 = allDecoys.slice(0, 24);
+      const decoysP2 = allDecoys.slice(24, 48);
+
+      // Tablero 1 (visto por P2): Contiene secreto P1 + decoysP1.
+      const board1Pool = [state.secretPokemon1!, ...decoysP1].sort(() => Math.random() - 0.5);
       
-      // Tablero 2 (visto por P1): Contiene secreto P2 + 24 decoys. NO contiene secreto P1.
-      const board2Pool = [state.secretPokemon2!, ...commonDecoys].sort(() => Math.random() - 0.5);
+      // Tablero 2 (visto por P1): Contiene secreto P2 + decoysP2.
+      const board2Pool = [state.secretPokemon2!, ...decoysP2].sort(() => Math.random() - 0.5);
 
       const finalState: GameState = {
         ...state,
