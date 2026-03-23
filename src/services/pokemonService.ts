@@ -23,3 +23,21 @@ export async function getRandomPokemons(count: number = 25): Promise<Pokemon[]> 
     types: data.types.map((t: any) => t.type.name),
   }));
 }
+
+export async function getPokemonByName(name: string): Promise<Pokemon | null> {
+  try {
+    const res = await fetch(`${BASE_URL}/${name.toLowerCase().trim()}`);
+    if (!res.ok) return null;
+    const data = await res.ok ? await res.json() : null;
+    if (!data) return null;
+
+    return {
+      id: data.id,
+      name: data.name,
+      image: data.sprites.other['official-artwork'].front_default,
+      types: data.types.map((t: any) => t.type.name),
+    };
+  } catch (error) {
+    return null;
+  }
+}

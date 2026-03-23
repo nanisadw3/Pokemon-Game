@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import './App.css';
 import GameBoard from './components/GameBoard';
 import PokemonCard from './components/PokemonCard';
-import { getRandomPokemons } from './services/pokemonService';
+import { getRandomPokemons, getPokemonByName } from './services/pokemonService';
 import type { Pokemon, GameState } from './types/game';
 import { io, Socket } from 'socket.io-client';
 
@@ -27,11 +27,31 @@ function App() {
   const [isChatMinimized, setIsChatMinimized] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [globalResults, setGlobalResults] = useState<Pokemon[]>([]);
+  const [isSearchingGlobal, setIsSearchingGlobal] = useState(false);
   
   const [socket, setSocket] = useState<Socket | null>(null);
   const [roomCode, setRoomCode] = useState('');
   const [myPlayerNum, setMyPlayerNum] = useState<1 | 2 | null>(null);
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (searchTerm.length > 2 && gameState.phase === 'setup') {
+        setIsSearchingGlobal(true);
+        const pokemon = await getPokemonByName(searchTerm);
+        if (pokemon) {
+          setGlobalResults([pokemon]);
+        } else {
+          setGlobalResults([]);
+        }
+        setIsSearchingGlobal(false);
+      } else {
+        setGlobalResults([]);
+      }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [searchTerm, gameState.phase]);
 
   // Refs para que los sockets siempre tengan el valor real actualizado
   const myPlayerNumRef = useRef<1 | 2 | null>(null);
@@ -172,10 +192,20 @@ function App() {
   const handleSelectSecret = (pokemon: Pokemon) => {
     setSelectedAnim(pokemon);
     setSearchTerm('');
+    setGlobalResults([]);
     
     // Sincronizamos los secretos al servidor de inmediato
     setGameState(prev => {
       const newState = { ...prev };
+      
+      // Si el pokemon elegido no está en el tablero, lo inyectamos reemplazando el primero para que el rival pueda verlo
+      const myBoardKey = myPlayerNum === 1 ? 'board1' : 'board2';
+      const onBoard = newState[myBoardKey].some(i => i.pokemon.id === pokemon.id);
+      
+      if (!onBoard) {
+        newState[myBoardKey][0] = { pokemon, isFlipped: false };
+      }
+
       if (myPlayerNum === 1) newState.secretPokemon1 = pokemon;
       else newState.secretPokemon2 = pokemon;
       syncState(newState);
@@ -337,35 +367,69 @@ function App() {
                   <div className="search-container">
                     <input 
                       type="text" 
-                      placeholder="🔎 Buscar Pokémon..." 
+                      placeholder="🔎 Buscar en todo el mundo..." 
                       className="search-input" 
                       value={searchTerm} 
                       onChange={(e) => setSearchTerm(e.target.value)} 
                     />
+                    {isSearchingGlobal && <div className="search-loader"></div>}
                   </div>
                   <button onClick={refreshBoard} className={`refresh-btn ${refreshing ? 'spinning' : ''}`} disabled={refreshing}>
-                    🔄 CAMBIAR POKÉMON
+                    🔄 CAMBIAR TODO
                   </button>
                 </div>
               </div>
-              <h2>Elige TU Pokémon secreto de este tablero</h2>
-              <div className="selection-grid">
-                {(myPlayerNum === 1 ? gameState.board1 : gameState.board2)
-                  .filter(item => item.pokemon.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                  .map(item => (
-                    <PokemonCard 
-                      key={item.pokemon.id} 
-                      pokemon={item.pokemon} 
-                      isFlipped={false} 
-                      onClick={() => handleSelectSecret(item.pokemon)} 
-                      showName={true}
-                    />
-                  ))}
-              </div>
-              { (myPlayerNum === 1 ? gameState.board1 : gameState.board2).filter(item => item.pokemon.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
-                <div className="no-results">
-                  <p>No se encontró ningún Pokémon con ese nombre...</p>
+              
+              {searchTerm.length > 0 ? (
+                <div className="search-results-section">
+                  <h3>Resultados de búsqueda:</h3>
+                  <div className="selection-grid">
+                    {/* Primero resultados del tablero actual */}
+                    {(myPlayerNum === 1 ? gameState.board1 : gameState.board2)
+                      .filter(item => item.pokemon.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .map(item => (
+                        <PokemonCard 
+                          key={`local-${item.pokemon.id}`} 
+                          pokemon={item.pokemon} 
+                          isFlipped={false} 
+                          onClick={() => handleSelectSecret(item.pokemon)} 
+                          showName={true}
+                        />
+                      ))}
+                    {/* Luego resultados globales (si no están ya en el tablero) */}
+                    {globalResults
+                      .filter(gp => !(myPlayerNum === 1 ? gameState.board1 : gameState.board2).some(item => item.pokemon.id === gp.id))
+                      .map(gp => (
+                        <PokemonCard 
+                          key={`global-${gp.id}`} 
+                          pokemon={gp} 
+                          isFlipped={false} 
+                          onClick={() => handleSelectSecret(gp)} 
+                          showName={true}
+                        />
+                      ))}
+                  </div>
+                  { (myPlayerNum === 1 ? gameState.board1 : gameState.board2).filter(item => item.pokemon.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && globalResults.length === 0 && !isSearchingGlobal && (
+                    <div className="no-results">
+                      <p>No encontramos a "{searchTerm}". ¡Prueba con otro nombre!</p>
+                    </div>
+                  )}
                 </div>
+              ) : (
+                <>
+                  <h2>Elige TU Pokémon secreto del tablero</h2>
+                  <div className="selection-grid">
+                    {(myPlayerNum === 1 ? gameState.board1 : gameState.board2).map(item => (
+                      <PokemonCard 
+                        key={item.pokemon.id} 
+                        pokemon={item.pokemon} 
+                        isFlipped={false} 
+                        onClick={() => handleSelectSecret(item.pokemon)} 
+                        showName={true}
+                      />
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           )
