@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useState } from 'react';
 import type { Pokemon } from '../types/game';
 
 interface GameOverProps {
@@ -17,23 +17,25 @@ const GameOver: React.FC<GameOverProps> = ({
   const isWinner = winner === myPlayerNum;
   const opponentSecret = myPlayerNum === 1 ? secretPokemon2 : secretPokemon1;
 
-  const winnerStars = useMemo(() => {
+  const [winnerStars] = useState(() => {
+    if (winner !== myPlayerNum) return [];
     return [...Array(60)].map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
       delay: `${Math.random() * 3}s`,
       duration: `${3 + Math.random() * 2}s`
     }));
-  }, []);
+  });
 
-  const loserOrbs = useMemo(() => {
+  const [loserOrbs] = useState(() => {
+    if (winner === myPlayerNum) return [];
     return [...Array(40)].map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
       top: `${100 + Math.random() * 20}%`,
       delay: `${Math.random() * 4}s`
     }));
-  }, []);
+  });
 
   return (
     <>

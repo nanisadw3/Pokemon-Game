@@ -38,7 +38,6 @@ function App() {
   const [showSpy, setShowSpy] = useState(false);
   const [selectedAnim, setSelectedAnim] = useState<Pokemon | null>(null);
   const [isGuessMode, setIsGuessMode] = useState(false);
-  const [gameAlert, setGameAlert] = useState<{ title: string, message: string, onConfirm: () => void } | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatVisible, setChatVisible] = useState(true);
   const [isChatMinimized, setIsChatMinimized] = useState(false);
@@ -420,16 +419,6 @@ function App() {
             <h2>¡TE ELIJO A TI!</h2>
             <img src={selectedAnim.image} alt={selectedAnim.name} className="anim-image" />
             <h1 className="anim-name">{selectedAnim.name}</h1>
-          </div>
-        </div>
-      )}
-
-      {gameAlert && (
-        <div className="game-alert-overlay">
-          <div className="game-alert-box">
-            <h3>{gameAlert.title}</h3>
-            <p>{gameAlert.message}</p>
-            <button onClick={gameAlert.onConfirm}>CONTINUAR</button>
           </div>
         </div>
       )}
