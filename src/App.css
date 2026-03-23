@@ -312,36 +312,89 @@ h1 {
 }
 
 
-/* NUEVA ANIMACIÓN GANADOR: PAPEL PICADO 3D */
-.confetti.paper {
-  position: absolute;
-  top: -20px;
-  width: 12px;
-  height: 20px;
-  background-color: #facc15;
-  border-radius: 2px;
-  animation: confettiFall3D 4s ease-out forwards;
+/* TARJETA FINAL MODERNIZADA (GLASSMORPHISM) */
+.victory-overlay {
+  backdrop-filter: blur(15px);
+  background: rgba(15, 23, 42, 0.8);
 }
 
-@keyframes confettiFall3D {
-  0% { transform: translateY(0) rotateX(0deg) rotateY(0deg) rotateZ(0deg); opacity: 1; }
-  100% { transform: translateY(105vh) rotateX(720deg) rotateY(360deg) rotateZ(180deg); opacity: 0; }
+.victory-card-epic {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(25px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 60px 40px;
+  border-radius: 50px;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 0 40px rgba(255,255,255,0.05);
+  max-width: 500px;
+  width: 90%;
 }
 
-/* NUEVA ANIMACIÓN PERDEDOR: DESTELLOS DORADOS */
-.sparkle-particle {
+.victory-card-epic h1 {
+  font-size: 3rem;
+  letter-spacing: 2px;
+  background: linear-gradient(to bottom, #fff, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  margin-bottom: 30px;
+}
+
+/* BOTÓN MODERNO CON GRADIENTE ANIMADO */
+.play-again-btn {
+  background: linear-gradient(-45deg, #facc15, #f97316, #3b82f6, #9333ea);
+  background-size: 300% 300%;
+  animation: gradientBG 5s ease infinite;
+  border: none;
+  border-radius: 50px;
+  color: white;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+}
+
+.play-again-btn:hover {
+  transform: scale(1.1) translateY(-5px);
+  box-shadow: 0 20px 40px rgba(250, 204, 21, 0.4);
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* NUEVA ANIMACIÓN GANADOR: DIAMOND SHINE */
+.particle-diamond {
   position: absolute;
-  width: 6px;
-  height: 6px;
-  background: #facc15;
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  animation: diamondPop 3s ease-out forwards;
+}
+
+@keyframes diamondPop {
+  0% { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(1.5) rotate(360deg); opacity: 0; }
+}
+
+/* NUEVA ANIMACIÓN PERDEDOR: NEBULA FLOAT */
+.particle-nebula {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, transparent 70%);
   border-radius: 50%;
-  box-shadow: 0 0 10px #facc15, 0 0 20px #facc15;
-  animation: sparkleFloat 3s ease-in-out infinite;
+  animation: nebulaFloat 8s infinite alternate;
 }
 
-@keyframes sparkleFloat {
-  0%, 100% { transform: translateY(0) scale(1); opacity: 0; }
-  50% { transform: translateY(-100vh) scale(1.5); opacity: 1; }
+@keyframes nebulaFloat {
+  from { transform: translate(0, 0) scale(1); opacity: 0.3; }
+  to { transform: translate(var(--tx), var(--ty)) scale(1.5); opacity: 0.6; }
 }
 
 .loser-image {
