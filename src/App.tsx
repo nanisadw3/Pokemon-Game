@@ -155,23 +155,22 @@ function App() {
     setLoading(true);
 
     try {
-      // Pedimos una muestra mucho más grande de Pokémon aleatorios para que los tableros sean variados
-      // Queremos llenar 2 tableros de 25-30 pokemons cada uno con opciones únicas
-      const totalNeeded = 60; 
-      const extraData = await getRandomPokemons(totalNeeded, [state.secretPokemon1!.id, state.secretPokemon2!.id]);
+      // Para que el juego sea real, ambos tableros deben tener los mismos candidatos.
+      // Necesitamos 23 Pokémon extra que, sumados a los 2 secretos, dan el total de 25.
+      const decoysNeeded = 23; 
+      const commonDecoys = await getRandomPokemons(decoysNeeded, [state.secretPokemon1!.id, state.secretPokemon2!.id]);
       
-      // Mezclamos bien y repartimos
-      const shuffledExtra = [...extraData].sort(() => Math.random() - 0.5);
-      const extraForBoard2 = shuffledExtra.slice(0, 24);
-      const extraForBoard1 = shuffledExtra.slice(24, 48);
-      
-      const pool2 = [state.secretPokemon2!, ...extraForBoard2].sort(() => Math.random() - 0.5);
-      const pool1 = [state.secretPokemon1!, ...extraForBoard1].sort(() => Math.random() - 0.5);
+      // El pool total de 25 Pokémon que ambos jugadores verán
+      const finalPool = [state.secretPokemon1!, state.secretPokemon2!, ...commonDecoys];
+
+      // Mezclamos el pool de forma diferente para cada tablero
+      const board1Pool = [...finalPool].sort(() => Math.random() - 0.5);
+      const board2Pool = [...finalPool].sort(() => Math.random() - 0.5);
 
       const finalState: GameState = {
         ...state,
-        board1: pool1.map(p => ({ pokemon: p, isFlipped: false })),
-        board2: pool2.map(p => ({ pokemon: p, isFlipped: false })),
+        board1: board1Pool.map(p => ({ pokemon: p, isFlipped: false })),
+        board2: board2Pool.map(p => ({ pokemon: p, isFlipped: false })),
         phase: 'playing'
       };
 
