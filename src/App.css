@@ -525,9 +525,18 @@ h1 {
   justify-content: center;
   border: 3px solid rgba(255, 255, 255, 0.1);
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.secret-actions { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+.secret-actions { 
+  display: flex; 
+  gap: 20px; 
+  flex-wrap: wrap; 
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+}
 
 .reveal-btn {
   padding: 15px 35px;
