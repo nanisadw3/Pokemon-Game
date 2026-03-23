@@ -38,12 +38,13 @@ function App() {
   const [isSearchingGlobal, setIsSearchingGlobal] = useState(false);
   
   // Networking
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const socketRef = useRef<Socket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
   const [roomCode, setRoomCode] = useState('');
   const [myPlayerNum, setMyPlayerNum] = useState<1 | 2 | null>(null);
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
 
-  // Refs for socket callbacks
+  // Refs for socket callbacks (to avoid re-binding listeners)
   const roomCodeRef = useRef('');
   const myPlayerNumRef = useRef<1 | 2 | null>(null);
   const selectedAnimRef = useRef<Pokemon | null>(null);
@@ -82,29 +83,29 @@ function App() {
 
   // Global Search
   useEffect(() => {
+    if (searchTerm.trim().length === 0 || gameState.phase !== 'setup') {
+      setGlobalResults([]);
+      return;
+    }
+
     const timer = setTimeout(async () => {
-      if (searchTerm.trim().length > 0 && gameState.phase === 'setup') {
-        setIsSearchingGlobal(true);
-        const filtered = allNames
-          .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase().trim()))
-          .slice(0, 30);
-        
-        const details = await Promise.all(filtered.map(p => getPokemonDetails(p.url)));
-        setGlobalResults(details.filter(p => p !== null) as Pokemon[]);
-        setIsSearchingGlobal(false);
-      } else {
-        setGlobalResults([]);
-      }
+      setIsSearchingGlobal(true);
+      const filtered = allNames
+        .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase().trim()))
+        .slice(0, 30);
+      
+      const details = await Promise.all(filtered.map(p => getPokemonDetails(p.url)));
+      setGlobalResults(details.filter(p => p !== null) as Pokemon[]);
+      setIsSearchingGlobal(false);
     }, 400);
     return () => clearTimeout(timer);
   }, [searchTerm, gameState.phase, allNames]);
 
   const syncState = useCallback((newState: GameState) => {
-    socket?.emit('sync-game-state', { roomCode, gameState: newState });
-  }, [roomCode, socket]);
+    socketRef.current?.emit('sync-game-state', { roomCode: roomCodeRef.current, gameState: newState });
+  }, []);
 
-  const initGameMultiplayer = useCallback(async (pNum: number | null) => {
-    if (pNum !== 1) return;
+  const initGameMultiplayer = useCallback(async () => {
     setLoading(true);
     const allData = await getRandomPokemons(40);
     const p1 = allData.slice(0, 20);
@@ -123,12 +124,15 @@ function App() {
     setGameState(initialState);
     syncState(initialState);
     setLoading(false);
-  }, [roomCode, socket, syncState]);
+  }, [syncState]);
 
-  // Socket setup
+  // Socket setup (ONCE)
   useEffect(() => {
     const newSocket: Socket = io(SOCKET_SERVER_URL, { transports: ['websocket'] });
-    setSocket(newSocket);
+    socketRef.current = newSocket;
+
+    newSocket.on('connect', () => setIsConnected(true));
+    newSocket.on('disconnect', () => setIsConnected(false));
 
     newSocket.on('update-game-state', (newState: GameState) => {
       setGameState(prev => {
@@ -152,10 +156,10 @@ function App() {
       setIsWaitingForOpponent(false);
       setLoading(true);
       if (myPlayerNumRef.current === 1) {
-        setTimeout(() => initGameMultiplayer(1), 1000);
+        setTimeout(() => initGameMultiplayer(), 1000);
       } else {
         setTimeout(() => {
-          newSocket.emit('request-game-state', roomCodeRef.current);
+          socketRef.current?.emit('request-game-state', roomCodeRef.current);
         }, 3000);
       }
     });
@@ -165,7 +169,10 @@ function App() {
       setLoading(false);
     });
 
-    return () => { newSocket.disconnect(); };
+    return () => { 
+      newSocket.disconnect(); 
+      socketRef.current = null;
+    };
   }, [initGameMultiplayer]);
 
   const createGame = () => {
@@ -174,14 +181,14 @@ function App() {
       code = Math.random().toString(36).substring(2, 8).toUpperCase();
       setRoomCode(code);
     }
-    socket?.emit('create-game', code);
+    socketRef.current?.emit('create-game', code);
     setIsWaitingForOpponent(true);
     setMyPlayerNum(1);
   };
 
   const joinGame = () => {
     if (!roomCode.trim()) return alert("Ingresa un código de sala");
-    socket?.emit('join-game', roomCode);
+    socketRef.current?.emit('join-game', roomCode);
     setMyPlayerNum(2);
   };
 
@@ -241,8 +248,8 @@ function App() {
   };
 
   const sendSystemMsg = useCallback((text: string) => {
-    socket?.emit('send-chat-msg', { roomCode, message: { sender: 'system', text } });
-  }, [roomCode, socket]);
+    socketRef.current?.emit('send-chat-msg', { roomCode: roomCodeRef.current, message: { sender: 'system', text } });
+  }, []);
 
   const handleCardClick = (index: number) => {
     if (gameState.phase !== 'playing' || gameState.turn !== myPlayerNum) return;
@@ -289,8 +296,8 @@ function App() {
   const handleSendMessage = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!chatInput.trim()) return;
-    socket?.emit('send-chat-msg', { 
-      roomCode, 
+    socketRef.current?.emit('send-chat-msg', { 
+      roomCode: roomCodeRef.current, 
       message: { sender: myPlayerNum === 1 ? 'player1' : 'player2', text: chatInput } 
     });
     setChatInput('');
@@ -325,6 +332,8 @@ function App() {
 
   return (
     <div className="app-container">
+      {!isConnected && <div className="connection-error">⚠️ Desconectado del servidor...</div>}
+      
       {selectedAnim && (
         <div className="selection-overlay">
           <div className="anim-content">
