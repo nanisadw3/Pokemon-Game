@@ -101,6 +101,9 @@
 }
 
 @media (max-width: 600px) {
+  .card {
+    animation: none !important;
+  }
   .pokemonName {
     display: none !important;
   }
