@@ -96,21 +96,22 @@ h1 {
 
 .search-input-floating {
   width: 100%;
-  padding: 18px 30px;
+  padding: 15px 25px;
   background: rgba(15, 23, 42, 0.95);
   backdrop-filter: blur(10px);
   border: 3px solid #facc15;
   border-radius: 50px;
   color: #fff;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 700;
   outline: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: center;
+  box-sizing: border-box;
 }
 
 .search-input-floating:focus {
-  transform: scale(1.05);
+  transform: scale(1.02);
   border-color: #3b82f6;
   box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
 }
@@ -119,27 +120,28 @@ h1 {
   flex: 1;
   width: 100%;
   overflow-y: auto;
-  padding: 100px 20px 40px; /* Padding top for floating bar */
+  padding: 110px 10px 40px; /* Padding top for floating bar */
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-sizing: border-box;
 }
 
 .setup-header-inside {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 }
 
 .setup-header-inside h1 {
-  font-size: 2.5rem;
+  font-size: 2rem;
   margin: 0;
   text-shadow: 0 10px 20px rgba(0,0,0,0.5);
 }
 
 .setup-header-inside p {
   color: #94a3b8;
-  font-size: 1.1rem;
-  margin-top: 10px;
+  font-size: 1rem;
+  margin-top: 8px;
 }
 
 .search-loader-main {
@@ -187,21 +189,26 @@ h1 {
 @media (max-width: 600px) {
   .floating-search-bar {
     top: 15px;
-    width: 92%;
+    width: 95%;
   }
   .search-input-floating {
     padding: 12px 20px;
-    font-size: 1rem;
+    font-size: 0.95rem;
     border-width: 2px;
   }
   .setup-board-scroll {
-    padding-top: 80px;
+    padding-top: 85px;
   }
   .setup-header-inside h1 {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
   }
   .setup-header-inside p {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+  }
+  .selection-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    padding: 15px !important;
   }
 }
 

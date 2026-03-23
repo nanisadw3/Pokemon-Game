@@ -147,6 +147,7 @@ function App() {
 
   const createGame = () => {
     if (!roomCode.trim()) return alert("Escribe un código de sala");
+    setLoading(true);
     setMyPlayerNum(1);
     setIsWaitingForOpponent(true);
     socket?.emit('create-game', roomCode);
@@ -154,6 +155,7 @@ function App() {
 
   const joinGame = () => {
     if (!roomCode.trim()) return alert("Escribe un código de sala");
+    setLoading(true);
     setMyPlayerNum(2);
     socket?.emit('join-game', roomCode);
   };
