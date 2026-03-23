@@ -54,8 +54,10 @@ function App() {
 
   useEffect(() => {
     const fetchAll = async () => {
+      setLoading(true);
       const names = await getAllPokemonNames();
       setAllNames(names);
+      setLoading(false);
     };
     fetchAll();
   }, []);
@@ -325,6 +327,7 @@ function App() {
   };
 
   const renderContent = () => {
+    console.log("RENDER DEBUG:", { loading, phase: gameState.phase });
     if (loading) return (
       <div className="loading">
         <div className="pokeball-loading"></div>
