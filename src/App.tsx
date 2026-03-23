@@ -86,6 +86,11 @@ function App() {
 
   // Initial Data Fetch
   useEffect(() => {
+    // Minimizar chat por defecto en móviles
+    if (window.innerWidth < 600) {
+      setIsChatMinimized(true);
+    }
+
     const fetchAll = async () => {
       try {
         setLoading(true);
