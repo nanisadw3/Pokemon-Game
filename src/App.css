@@ -365,8 +365,9 @@ h1 {
 /* ENSANCHAR TARJETAS EN COMPU */
 @media (min-width: 1000px) {
   .selection-grid {
-    grid-template-columns: repeat(6, 1fr) !important; /* Menos columnas = más anchas */
-    gap: 25px !important;
+    grid-template-columns: repeat(5, 1fr) !important; /* De 6 a 5 columnas = tarjetas más grandes */
+    gap: 30px !important;
+    padding: 30px !important;
   }
 }
 
