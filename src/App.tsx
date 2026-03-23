@@ -26,6 +26,7 @@ function App() {
   const [chatVisible, setChatVisible] = useState(true);
   const [isChatMinimized, setIsChatMinimized] = useState(false);
   const [chatInput, setChatInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   
   const [socket, setSocket] = useState<Socket | null>(null);
   const [roomCode, setRoomCode] = useState('');
@@ -160,6 +161,7 @@ function App() {
       syncState(newState);
       return newState;
     });
+    setSearchTerm('');
     setRefreshing(false);
   };
 
@@ -169,6 +171,7 @@ function App() {
 
   const handleSelectSecret = (pokemon: Pokemon) => {
     setSelectedAnim(pokemon);
+    setSearchTerm('');
     
     // Sincronizamos los secretos al servidor de inmediato
     setGameState(prev => {
@@ -330,22 +333,40 @@ function App() {
             <div className="setup-container">
               <div className="setup-header">
                 <h1>Preparación J{myPlayerNum}</h1>
-                <button onClick={refreshBoard} className={`refresh-btn ${refreshing ? 'spinning' : ''}`} disabled={refreshing}>
-                  🔄 CAMBIAR POKÉMON
-                </button>
+                <div className="setup-actions">
+                  <div className="search-container">
+                    <input 
+                      type="text" 
+                      placeholder="🔎 Buscar Pokémon..." 
+                      className="search-input" 
+                      value={searchTerm} 
+                      onChange={(e) => setSearchTerm(e.target.value)} 
+                    />
+                  </div>
+                  <button onClick={refreshBoard} className={`refresh-btn ${refreshing ? 'spinning' : ''}`} disabled={refreshing}>
+                    🔄 CAMBIAR POKÉMON
+                  </button>
+                </div>
               </div>
               <h2>Elige TU Pokémon secreto de este tablero</h2>
               <div className="selection-grid">
-                {(myPlayerNum === 1 ? gameState.board1 : gameState.board2).map(item => (
-                  <PokemonCard 
-                    key={item.pokemon.id} 
-                    pokemon={item.pokemon} 
-                    isFlipped={false} 
-                    onClick={() => handleSelectSecret(item.pokemon)} 
-                    showName={true}
-                  />
-                ))}
+                {(myPlayerNum === 1 ? gameState.board1 : gameState.board2)
+                  .filter(item => item.pokemon.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .map(item => (
+                    <PokemonCard 
+                      key={item.pokemon.id} 
+                      pokemon={item.pokemon} 
+                      isFlipped={false} 
+                      onClick={() => handleSelectSecret(item.pokemon)} 
+                      showName={true}
+                    />
+                  ))}
               </div>
+              { (myPlayerNum === 1 ? gameState.board1 : gameState.board2).filter(item => item.pokemon.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
+                <div className="no-results">
+                  <p>No se encontró ningún Pokémon con ese nombre...</p>
+                </div>
+              )}
             </div>
           )
         ) : (
