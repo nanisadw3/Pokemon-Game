@@ -20,27 +20,42 @@ interface PokeAPIRes {
 }
 
 export async function getRandomPokemons(count: number = 25, excludeIds: number[] = []): Promise<Pokemon[]> {
-  const totalPokemons = 1025; // Incluye hasta la Gen 9
-  const randomIds: number[] = [];
-  
-  while (randomIds.length < count) {
-    const randomId = Math.floor(Math.random() * totalPokemons) + 1;
-    if (!randomIds.includes(randomId) && !excludeIds.includes(randomId)) {
-      randomIds.push(randomId);
+  try {
+    // Obtenemos la lista completa de todos los Pokémon (incluyendo Megas y formas especiales)
+    const allRes = await fetch(`${BASE_URL}?limit=2000`);
+    const allData = await allRes.json();
+    const allResults = allData.results;
+
+    const selectedResults: { name: string, url: string }[] = [];
+    const usedIndices = new Set<number>();
+
+    while (selectedResults.length < count && usedIndices.size < allResults.length) {
+      const randomIndex = Math.floor(Math.random() * allResults.length);
+      if (!usedIndices.has(randomIndex)) {
+        usedIndices.add(randomIndex);
+        const p = allResults[randomIndex];
+        // Extraer ID de la URL para filtrar excluidos (ej: https://pokeapi.co/api/v2/pokemon/1/)
+        const id = parseInt(p.url.split('/').filter(Boolean).pop()!);
+        
+        if (!excludeIds.includes(id)) {
+          selectedResults.push(p);
+        }
+      }
     }
-    // Evitar bucle infinito si ya tenemos casi todos
-    if (excludeIds.length + randomIds.length >= totalPokemons) break;
+
+    const pokemonPromises = selectedResults.map(p => fetch(p.url).then(res => res.json()));
+    const pokemonsData = await Promise.all(pokemonPromises);
+
+    return (pokemonsData as PokeAPIRes[]).map((data) => ({
+      id: data.id,
+      name: data.name,
+      image: data.sprites.other['official-artwork'].front_default || data.sprites.front_default || '',
+      types: data.types.map((t) => t.type.name),
+    }));
+  } catch (error) {
+    console.error("Error in getRandomPokemons:", error);
+    return [];
   }
-
-  const pokemonPromises = randomIds.map(id => fetch(`${BASE_URL}/${id}`).then(res => res.json()));
-  const pokemonsData = await Promise.all(pokemonPromises);
-
-  return (pokemonsData as PokeAPIRes[]).map((data) => ({
-    id: data.id,
-    name: data.name,
-    image: data.sprites.other['official-artwork'].front_default,
-    types: data.types.map((t) => t.type.name),
-  }));
 }
 
 export async function getPokemonByName(name: string): Promise<Pokemon | null> {
