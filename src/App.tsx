@@ -303,36 +303,34 @@ function App() {
   const sendSystemMsg = useCallback((text: string) => {
     socketRef.current?.emit('send-chat-msg', { roomCode: roomCodeRef.current, message: { sender: 'system', text } });
   }, []);
-const handleCardClick = (index: number) => {
-  if (gameState.phase !== 'playing' || gameState.turn !== myPlayerNum) return;
+  const handleCardClick = (index: number) => {
+    if (gameState.phase !== 'playing' || gameState.turn !== myPlayerNum) return;
 
-  playSound('click');
-  const boardKey = myPlayerNum === 1 ? 'board2' : 'board1';
-  const clickedPokemon = gameState[boardKey][index].pokemon;
+    playSound('click');
+    const boardKey = myPlayerNum === 1 ? 'board2' : 'board1';
+    const clickedPokemon = gameState[boardKey][index].pokemon;
 
-  if (isGuessMode) {
-    const opponentSecret = myPlayerNum === 1 ? gameState.secretPokemon2 : gameState.secretPokemon1;
+    if (isGuessMode) {
+      const opponentSecret = myPlayerNum === 1 ? gameState.secretPokemon2 : gameState.secretPokemon1;
 
-    if (clickedPokemon.id === opponentSecret?.id) {
-      playSound('win');
-      const winState = { ...gameState, phase: 'gameover' as const, winner: myPlayerNum };
-      setGameState(winState);
-      syncState(winState);
-    } else {
-      // FALLO AL ADIVINAR: Tachar automáticamente y cambiar de turno
-      playSound('fail');
-      const nextTurn = myPlayerNum === 1 ? 2 : 1;
+      if (clickedPokemon.id === opponentSecret?.id) {
+        playSound('win');
+        const winState = { ...gameState, phase: 'gameover' as const, winner: myPlayerNum };
+        setGameState(winState);
+        syncState(winState);
+      } else {
+        // FALLO AL ADIVINAR: Tachar automáticamente y cambiar de turno
+        playSound('fail');
+        const nextTurn = myPlayerNum === 1 ? 2 : 1;
 
-      setGameState(prev => {
-...
-
+        setGameState(prev => {
           const newState = { ...prev };
           const failBoard = [...newState[boardKey]];
           // Simplemente giramos la carta (mostrando la Pokéball)
           failBoard[index] = { ...failBoard[index], isFlipped: true, isWrong: false };
           newState[boardKey] = failBoard;
           newState.turn = nextTurn;
-          
+
           syncState(newState);
           return newState;
         });
