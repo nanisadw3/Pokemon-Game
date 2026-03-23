@@ -11,7 +11,7 @@ export interface GameState {
   secretPokemon1: Pokemon | null;
   secretPokemon2: Pokemon | null;
   turn: 1 | 2;
-  phase: 'setup' | 'playing' | 'gameover';
+  phase: 'lobby' | 'setup' | 'playing' | 'gameover';
   winner: 1 | 2 | null;
 }
 

@@ -2,6 +2,23 @@ import type { Pokemon } from '../types/game';
 
 const BASE_URL = 'https://pokeapi.co/api/v2/pokemon';
 
+interface PokeAPIRes {
+  id: number;
+  name: string;
+  sprites: {
+    other: {
+      'official-artwork': {
+        front_default: string;
+      };
+    };
+  };
+  types: {
+    type: {
+      name: string;
+    };
+  }[];
+}
+
 export async function getRandomPokemons(count: number = 25, excludeIds: number[] = []): Promise<Pokemon[]> {
   const totalPokemons = 1025; // Incluye hasta la Gen 9
   const randomIds: number[] = [];
@@ -18,11 +35,11 @@ export async function getRandomPokemons(count: number = 25, excludeIds: number[]
   const pokemonPromises = randomIds.map(id => fetch(`${BASE_URL}/${id}`).then(res => res.json()));
   const pokemonsData = await Promise.all(pokemonPromises);
 
-  return pokemonsData.map(data => ({
+  return (pokemonsData as PokeAPIRes[]).map((data) => ({
     id: data.id,
     name: data.name,
     image: data.sprites.other['official-artwork'].front_default,
-    types: data.types.map((t: any) => t.type.name),
+    types: data.types.map((t) => t.type.name),
   }));
 }
 
@@ -37,9 +54,9 @@ export async function getPokemonByName(name: string): Promise<Pokemon | null> {
       id: data.id,
       name: data.name,
       image: data.sprites.other['official-artwork'].front_default,
-      types: data.types.map((t: any) => t.type.name),
+      types: data.types.map((t: { type: { name: string } }) => t.type.name),
     };
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -47,9 +64,10 @@ export async function getPokemonByName(name: string): Promise<Pokemon | null> {
 export async function getAllPokemonNames(): Promise<{ name: string, url: string }[]> {
   try {
     const res = await fetch(`${BASE_URL}?limit=10000`);
+    if (!res.ok) return [];
     const data = await res.json();
     return data.results;
-  } catch (error) {
+  } catch {
     return [];
   }
 }
@@ -57,14 +75,15 @@ export async function getAllPokemonNames(): Promise<{ name: string, url: string 
 export async function getPokemonDetails(url: string): Promise<Pokemon | null> {
   try {
     const res = await fetch(url);
+    if (!res.ok) return null;
     const data = await res.json();
     return {
       id: data.id,
       name: data.name,
       image: data.sprites.other['official-artwork'].front_default,
-      types: data.types.map((t: any) => t.type.name),
+      types: data.types.map((t: { type: { name: string } }) => t.type.name),
     };
-  } catch (error) {
+  } catch {
     return null;
   }
 }

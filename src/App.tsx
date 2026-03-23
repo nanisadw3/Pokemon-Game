@@ -1,8 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 import GameBoard from './components/GameBoard';
 import PokemonCard from './components/PokemonCard';
-import { getRandomPokemons, getPokemonByName, getAllPokemonNames, getPokemonDetails } from './services/pokemonService';
+import Lobby from './components/Lobby';
+import Chat from './components/Chat';
+import Setup from './components/Setup';
+import GameOver from './components/GameOver';
+import { getRandomPokemons, getAllPokemonNames, getPokemonDetails } from './services/pokemonService';
 import type { Pokemon, GameState } from './types/game';
 import { io, Socket } from 'socket.io-client';
 
@@ -14,12 +18,12 @@ interface ChatMessage {
 }
 
 function App() {
+  // UI States
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
   const [showSpy, setShowSpy] = useState(false);
   const [selectedAnim, setSelectedAnim] = useState<Pokemon | null>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const [isGuessMode, setIsGuessMode] = useState(false);
   const [gameAlert, setGameAlert] = useState<{ title: string, message: string, onConfirm: () => void } | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -27,20 +31,23 @@ function App() {
   const [isChatMinimized, setIsChatMinimized] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Game Data
   const [allNames, setAllNames] = useState<{name: string, url: string}[]>([]);
   const [globalResults, setGlobalResults] = useState<Pokemon[]>([]);
   const [isSearchingGlobal, setIsSearchingGlobal] = useState(false);
   
+  // Networking
   const [socket, setSocket] = useState<Socket | null>(null);
   const [roomCode, setRoomCode] = useState('');
   const [myPlayerNum, setMyPlayerNum] = useState<1 | 2 | null>(null);
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
 
+  // Refs for socket callbacks
   const roomCodeRef = useRef('');
-
-  useEffect(() => {
-    roomCodeRef.current = roomCode;
-  }, [roomCode]);
+  const myPlayerNumRef = useRef<1 | 2 | null>(null);
+  const selectedAnimRef = useRef<Pokemon | null>(null);
+  const chatMessagesRef = useRef<HTMLDivElement | null>(null);
 
   const [gameState, setGameState] = useState<GameState>({
     board1: [],
@@ -52,6 +59,12 @@ function App() {
     winner: null,
   });
 
+  // Sync refs
+  useEffect(() => { roomCodeRef.current = roomCode; }, [roomCode]);
+  useEffect(() => { myPlayerNumRef.current = myPlayerNum; }, [myPlayerNum]);
+  useEffect(() => { selectedAnimRef.current = selectedAnim; }, [selectedAnim]);
+
+  // Initial Data Fetch
   useEffect(() => {
     const fetchAll = async () => {
       try {
@@ -65,16 +78,13 @@ function App() {
       }
     };
     fetchAll();
-
-    const timer = setTimeout(() => setLoading(false), 5000);
-    return () => clearTimeout(timer);
   }, []);
 
+  // Global Search
   useEffect(() => {
     const timer = setTimeout(async () => {
       if (searchTerm.trim().length > 0 && gameState.phase === 'setup') {
         setIsSearchingGlobal(true);
-        // Filtrar por nombre (ahora permite desde 1 letra y muestra hasta 30)
         const filtered = allNames
           .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase().trim()))
           .slice(0, 30);
@@ -85,94 +95,17 @@ function App() {
       } else {
         setGlobalResults([]);
       }
-    }, 400); // Reducimos un poco el delay para que sea más rápido
+    }, 400);
     return () => clearTimeout(timer);
   }, [searchTerm, gameState.phase, allNames]);
 
-  // Refs para que los sockets siempre tengan el valor real actualizado
-  const myPlayerNumRef = useRef<1 | 2 | null>(null);
-  const selectedAnimRef = useRef<Pokemon | null>(null);
+  const syncState = useCallback((newState: GameState) => {
+    socket?.emit('sync-game-state', { roomCode, gameState: newState });
+  }, [roomCode, socket]);
 
-  useEffect(() => {
-    myPlayerNumRef.current = myPlayerNum;
-  }, [myPlayerNum]);
-
-  useEffect(() => {
-    selectedAnimRef.current = selectedAnim;
-  }, [selectedAnim]);
-
-  const chatMessagesRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const newSocket: Socket = io(SOCKET_SERVER_URL, {
-      transports: ['websocket']
-    });
-    setSocket(newSocket);
-
-    newSocket.on('update-game-state', (newState: GameState) => {
-      setGameState(prev => {
-        const mergedState = { ...prev, ...newState };
-        
-        // Preservar secretos si ya los tenemos localmente
-        if (prev.secretPokemon1 && !newState.secretPokemon1) mergedState.secretPokemon1 = prev.secretPokemon1;
-        if (prev.secretPokemon2 && !newState.secretPokemon2) mergedState.secretPokemon2 = prev.secretPokemon2;
-        
-        // SOLO pasamos a 'playing' si ambos secretos existen Y NO estamos viendo la animación
-        // Usamos el Ref para tener el valor real actual
-        if (mergedState.secretPokemon1 && mergedState.secretPokemon2 && mergedState.phase === 'setup' && !selectedAnimRef.current) {
-          mergedState.phase = 'playing';
-        }
-        
-        return mergedState;
-      });
-      // Importante: detener pantalla de carga para Jugador 2 cuando recibe el tablero de Jugador 1
-      setLoading(false);
-    });
-
-    newSocket.on('receive-chat-msg', (msg: ChatMessage) => {
-      setMessages(prev => [...prev, msg]);
-    });
-
-    newSocket.on('game-ready', () => {
-      setIsWaitingForOpponent(false);
-      setLoading(true);
-      
-      // El Jugador 1 genera el tablero
-      if (myPlayerNumRef.current === 1) {
-        setTimeout(() => {
-          initGameMultiplayer(1);
-        }, 1000);
-      } else {
-        // El Jugador 2 pide el estado por si acaso se perdió el primer mensaje
-        // O espera a que el J1 termine de cargar e inicializar
-        setTimeout(() => {
-          newSocket.emit('request-game-state', roomCodeRef.current);
-        }, 3000);
-
-        // Fallback de seguridad: quitar pantalla de carga tras 8 segundos si no hay respuesta
-        setTimeout(() => {
-          setLoading(prev => {
-            if (prev) return false;
-            return prev;
-          });
-        }, 8000);
-      }
-    });
-
-    newSocket.on('error-msg', (err: string) => {
-      alert(err);
-      setLoading(false);
-    });
-
-    return () => { newSocket.disconnect(); };
-  }, []); // Revertimos a dependencias vacías para evitar reconexiones al escribir
-
-  const initGameMultiplayer = async (pNum: number | null) => {
+  const initGameMultiplayer = useCallback(async (pNum: number | null) => {
     if (pNum !== 1) return;
-
     setLoading(true);
-    // Empezamos con 40 para que cargue súper rápido (20 por jugador)
-    // El scroll infinito hará el resto
     const allData = await getRandomPokemons(40);
     const p1 = allData.slice(0, 20);
     const p2 = allData.slice(20, 40);
@@ -190,25 +123,80 @@ function App() {
     setGameState(initialState);
     syncState(initialState);
     setLoading(false);
+  }, [roomCode, socket, syncState]);
+
+  // Socket setup
+  useEffect(() => {
+    const newSocket: Socket = io(SOCKET_SERVER_URL, { transports: ['websocket'] });
+    setSocket(newSocket);
+
+    newSocket.on('update-game-state', (newState: GameState) => {
+      setGameState(prev => {
+        const mergedState = { ...prev, ...newState };
+        if (prev.secretPokemon1 && !newState.secretPokemon1) mergedState.secretPokemon1 = prev.secretPokemon1;
+        if (prev.secretPokemon2 && !newState.secretPokemon2) mergedState.secretPokemon2 = prev.secretPokemon2;
+        
+        if (mergedState.secretPokemon1 && mergedState.secretPokemon2 && mergedState.phase === 'setup' && !selectedAnimRef.current) {
+          mergedState.phase = 'playing';
+        }
+        return mergedState;
+      });
+      setLoading(false);
+    });
+
+    newSocket.on('receive-chat-msg', (msg: ChatMessage) => {
+      setMessages(prev => [...prev, msg]);
+    });
+
+    newSocket.on('game-ready', () => {
+      setIsWaitingForOpponent(false);
+      setLoading(true);
+      if (myPlayerNumRef.current === 1) {
+        setTimeout(() => initGameMultiplayer(1), 1000);
+      } else {
+        setTimeout(() => {
+          newSocket.emit('request-game-state', roomCodeRef.current);
+        }, 3000);
+      }
+    });
+
+    newSocket.on('error-msg', (err: string) => {
+      alert(err);
+      setLoading(false);
+    });
+
+    return () => { newSocket.disconnect(); };
+  }, [initGameMultiplayer]);
+
+  const createGame = () => {
+    let code = roomCode.trim();
+    if (!code) {
+      code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      setRoomCode(code);
+    }
+    socket?.emit('create-game', code);
+    setIsWaitingForOpponent(true);
+    setMyPlayerNum(1);
+  };
+
+  const joinGame = () => {
+    if (!roomCode.trim()) return alert("Ingresa un código de sala");
+    socket?.emit('join-game', roomCode);
+    setMyPlayerNum(2);
   };
 
   const loadMorePokemons = async () => {
     if (loadingMore || searchTerm.trim().length > 0 || gameState.phase !== 'setup') return;
     setLoadingMore(true);
-    
     try {
       const currentBoard = myPlayerNum === 1 ? gameState.board1 : gameState.board2;
       const excludeIds = currentBoard.map(item => item.pokemon.id);
-      
       const moreData = await getRandomPokemons(30, excludeIds);
       const newItems = moreData.map(p => ({ pokemon: p, isFlipped: false }));
       
       setGameState(prev => {
         const boardKey = myPlayerNum === 1 ? 'board1' : 'board2';
-        const newState = {
-          ...prev,
-          [boardKey]: [...prev[boardKey], ...newItems]
-        };
+        const newState = { ...prev, [boardKey]: [...prev[boardKey], ...newItems] };
         syncState(newState);
         return newState;
       });
@@ -226,26 +214,16 @@ function App() {
     }
   };
 
-  const syncState = (newState: GameState) => {
-    socket?.emit('sync-game-state', { roomCode, gameState: newState });
-  };
-
   const handleSelectSecret = (pokemon: Pokemon) => {
     setSelectedAnim(pokemon);
     setSearchTerm('');
     setGlobalResults([]);
     
-    // Sincronizamos los secretos al servidor de inmediato
     setGameState(prev => {
       const newState = { ...prev };
-      
-      // Si el pokemon elegido no está en el tablero, lo inyectamos reemplazando el primero para que el rival pueda verlo
       const myBoardKey = myPlayerNum === 1 ? 'board1' : 'board2';
       const onBoard = newState[myBoardKey].some(i => i.pokemon.id === pokemon.id);
-      
-      if (!onBoard) {
-        newState[myBoardKey][0] = { pokemon, isFlipped: false };
-      }
+      if (!onBoard) newState[myBoardKey][0] = { pokemon, isFlipped: false };
 
       if (myPlayerNum === 1) newState.secretPokemon1 = pokemon;
       else newState.secretPokemon2 = pokemon;
@@ -253,25 +231,24 @@ function App() {
       return newState;
     });
 
-    // Esperamos 2.5 segundos para asegurar que la animación se vea completa
     setTimeout(() => {
       setSelectedAnim(null);
       setGameState(prev => {
-        // Solo pasamos a playing si ya tenemos ambos secretos
-        if (prev.secretPokemon1 && prev.secretPokemon2) {
-          return { ...prev, phase: 'playing' };
-        }
+        if (prev.secretPokemon1 && prev.secretPokemon2) return { ...prev, phase: 'playing' };
         return prev;
       });
     }, 2500);
   };
+
+  const sendSystemMsg = useCallback((text: string) => {
+    socket?.emit('send-chat-msg', { roomCode, message: { sender: 'system', text } });
+  }, [roomCode, socket]);
 
   const handleCardClick = (index: number) => {
     if (gameState.phase !== 'playing' || gameState.turn !== myPlayerNum) return;
     
     const newState = { ...gameState };
     const board = myPlayerNum === 1 ? [...newState.board2] : [...newState.board1];
-    
     if (!board[index]) return;
     const clickedPokemon = board[index].pokemon;
 
@@ -289,8 +266,7 @@ function App() {
             const failState = { ...gameState };
             const failBoard = myPlayerNum === 1 ? [...failState.board2] : [...failState.board1];
             failBoard[index].isFlipped = true;
-            if (myPlayerNum === 1) failState.board2 = failBoard;
-            else failState.board1 = failBoard;
+            if (myPlayerNum === 1) failState.board2 = failBoard; else failState.board1 = failBoard;
             failState.turn = myPlayerNum === 1 ? 2 : 1;
             setIsGuessMode(false);
             setGameState(failState);
@@ -305,15 +281,9 @@ function App() {
       sendSystemMsg(`${board[index].isFlipped ? 'Tachó' : 'Des-tachó'} a ${clickedPokemon.name}.`);
     }
 
-    if (myPlayerNum === 1) newState.board2 = board;
-    else newState.board1 = board;
-
+    if (myPlayerNum === 1) newState.board2 = board; else newState.board1 = board;
     setGameState(newState);
     syncState(newState);
-  };
-
-  const sendSystemMsg = (text: string) => {
-    socket?.emit('send-chat-msg', { roomCode, message: { sender: 'system', text } });
   };
 
   const handleSendMessage = (e?: React.FormEvent) => {
@@ -334,287 +304,160 @@ function App() {
     sendSystemMsg(`--- Cambio de Turno ---`);
   };
 
-  const renderContent = () => {
-    console.log("RENDER DEBUG:", { loading, phase: gameState.phase });
-    if (loading) return (
-      <div className="loading">
-        <div className="pokeball-loading"></div>
-        <h2>Cargando aventura...</h2>
-      </div>
-    );
+  if (loading) return (
+    <div className="loading">
+      <div className="pokeball-loading"></div>
+      <h2>Cargando aventura...</h2>
+    </div>
+  );
 
-    if (gameState.phase === 'lobby') {
-      return (
-        <div className="lobby-container">
-          <h1>Pokémon Guess Who Multiplayer</h1>
-          <div className="lobby-box">
-            <input type="text" placeholder="CÓDIGO SALA" value={roomCode} onChange={(e) => setRoomCode(e.target.value.toUpperCase())} maxLength={6} />
-            <div className="lobby-buttons">
-              <button onClick={createGame} className="create-btn">CREAR</button>
-              <button onClick={joinGame} className="join-btn">UNIRSE</button>
-            </div>
-            {isWaitingForOpponent && (
-              <div className="waiting-msg">
-                <div className="pokeball-loading"></div>
-                <p>SALA: <span className="room-code-display">{roomCode}</span></p>
-                <p className="status-blink">Esperando a tu rival...</p>
-              </div>
-            )}
+  if (gameState.phase === 'lobby') {
+    return (
+      <Lobby 
+        roomCode={roomCode} 
+        setRoomCode={setRoomCode} 
+        createGame={createGame} 
+        joinGame={joinGame} 
+        isWaitingForOpponent={isWaitingForOpponent} 
+      />
+    );
+  }
+
+  return (
+    <div className="app-container">
+      {selectedAnim && (
+        <div className="selection-overlay">
+          <div className="anim-content">
+            <h2>¡TE ELIJO A TI!</h2>
+            <img src={selectedAnim.image} alt={selectedAnim.name} className="anim-image" />
+            <h1 className="anim-name">{selectedAnim.name}</h1>
           </div>
         </div>
-      );
-    }
+      )}
 
-    return (
-      <div className="app-container">
-        {selectedAnim && (
-          <div className="selection-overlay">
-            <div className="anim-content">
-              <h2>¡TE ELIJO A TI!</h2>
-              <img src={selectedAnim.image} alt={selectedAnim.name} className="anim-image" />
-              <h1 className="anim-name">{selectedAnim.name}</h1>
-            </div>
+      {gameAlert && (
+        <div className="game-alert-overlay">
+          <div className="game-alert-box">
+            <h3>{gameAlert.title}</h3>
+            <p>{gameAlert.message}</p>
+            <button onClick={gameAlert.onConfirm}>CONTINUAR</button>
           </div>
-        )}
+        </div>
+      )}
 
-        {gameAlert && (
-          <div className="game-alert-overlay">
-            <div className="game-alert-box">
-              <h3>{gameAlert.title}</h3>
-              <p>{gameAlert.message}</p>
-              <button onClick={gameAlert.onConfirm}>CONTINUAR</button>
-            </div>
-          </div>
-        )}
+      {gameState.phase === 'setup' ? (
+        <Setup 
+          myPlayerNum={myPlayerNum}
+          board={myPlayerNum === 1 ? gameState.board1 : gameState.board2}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          isSearchingGlobal={isSearchingGlobal}
+          globalResults={globalResults}
+          loadingMore={loadingMore}
+          handleScroll={handleScroll}
+          handleSelectSecret={handleSelectSecret}
+          secretPokemon={myPlayerNum === 1 ? gameState.secretPokemon1 : gameState.secretPokemon2}
+        />
+      ) : (
+        <>
+          <header>
+            <div className="header-left"><h1>Sala: {roomCode}</h1></div>
+            <div className="turn-indicator">{gameState.turn === myPlayerNum ? "TU TURNO" : "TURNO RIVAL"}</div>
+          </header>
 
-        {gameState.phase === 'setup' ? (
-          (myPlayerNum === 1 ? gameState.secretPokemon1 : gameState.secretPokemon2) ? (
-            <div className="setup-waiting-fullscreen">
-              <div className="pokeball-loading" style={{marginBottom: '40px'}}></div>
-              <img 
-                src={(myPlayerNum === 1 ? gameState.secretPokemon1 : gameState.secretPokemon2)?.image} 
-                className="setup-waiting-pokemon"
-                alt="Chosen Pokemon"
-              />
-              <p className="chosen-hint">HAS ELEGIDO A:</p>
-              <h1 className="chosen-name">{(myPlayerNum === 1 ? gameState.secretPokemon1 : gameState.secretPokemon2)?.name}</h1>
-              <h2 className="waiting-text-gradient">Esperando al Rival...</h2>
-              <p style={{color: '#94a3b8', maxWidth: '400px'}}>El duelo comenzará en cuanto tu oponente elija su Pokémon secreto.</p>
-            </div>
-          ) : (
-            <div className="setup-container">
-              <div className="floating-search-bar">
-                <div className="search-container">
-                  <input 
-                    type="text" 
-                    placeholder="Buscar pokemon" 
-                    className="search-input-floating" 
-                    value={searchTerm} 
-                    onChange={(e) => setSearchTerm(e.target.value)} 
-                  />
-                  {isSearchingGlobal && <div className="search-loader-main"></div>}
+          <div className="game-layout-single">
+            <div className="player-section">
+              <div className="secret-display">
+                <div className="secret-actions">
+                  <button onClick={() => setShowSecret(!showSecret)} className="reveal-btn">
+                    {showSecret ? '🙈 OCULTAR MI SECRETO' : '🔍 REVELAR MI SECRETO'}
+                  </button>
+                  <button onClick={() => setShowSpy(!showSpy)} className={`spy-btn ${showSpy ? 'active' : ''}`} title={showSpy ? 'Volver al juego' : 'Ver mi tablero'}>
+                    {showSpy ? (
+                      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    ) : (
+                      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M2 10a11 11 0 0 0 20 0" />
+                        <path d="m7 15-1.5 3" />
+                        <path d="m12 17v3" />
+                        <path d="m17 15 1.5 3" />
+                      </svg>
+                    )}
+                  </button>
                 </div>
+                {showSecret && (myPlayerNum === 1 ? gameState.secretPokemon1 : gameState.secretPokemon2) && (
+                  <div className="secret-card-mini">
+                    <PokemonCard 
+                      pokemon={myPlayerNum === 1 ? gameState.secretPokemon1! : gameState.secretPokemon2!} 
+                      isFlipped={false} 
+                      onClick={() => {}} 
+                      isSecret 
+                      showName={true} 
+                    />
+                  </div>
+                )}
               </div>
               
-              <div className="setup-board-scroll" onScroll={handleScroll}>
-                <div className="setup-header-inside">
-                  <h1>Preparación Jugador {myPlayerNum}</h1>
-                  <p>Desliza para ver más o busca tu favorito</p>
-                </div>
-
-                {searchTerm.trim().length > 0 ? (
-                <div className="search-results-section">
-                  <h3>Resultados de búsqueda:</h3>
-                  <div className="selection-grid">
-                    {/* Primero resultados del tablero actual */}
-                    {(myPlayerNum === 1 ? gameState.board1 : gameState.board2)
-                      .filter(item => item.pokemon.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                      .map(item => (
-                        <PokemonCard 
-                          key={`local-${item.pokemon.id}`} 
-                          pokemon={item.pokemon} 
-                          isFlipped={false} 
-                          onClick={() => handleSelectSecret(item.pokemon)} 
-                          showName={true}
-                        />
-                      ))}
-                    {/* Luego resultados globales (si no están ya en el tablero) */}
-                    {globalResults
-                      .filter(gp => !(myPlayerNum === 1 ? gameState.board1 : gameState.board2).some(item => item.pokemon.id === gp.id))
-                      .map(gp => (
-                        <PokemonCard 
-                          key={`global-${gp.id}`} 
-                          pokemon={gp} 
-                          isFlipped={false} 
-                          onClick={() => handleSelectSecret(gp)} 
-                          showName={true}
-                        />
-                      ))}
-                  </div>
-                  { (myPlayerNum === 1 ? gameState.board1 : gameState.board2).filter(item => item.pokemon.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && globalResults.length === 0 && !isSearchingGlobal && (
-                    <div className="no-results">
-                      <p>No encontramos a "{searchTerm}". ¡Prueba con otro nombre!</p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <>
-                  <h2>Elige TU Pokémon secreto del tablero</h2>
-                  <div className="selection-grid">
-                    {(myPlayerNum === 1 ? gameState.board1 : gameState.board2).map(item => (
-                      <PokemonCard 
-                        key={item.pokemon.id} 
-                        pokemon={item.pokemon} 
-                        isFlipped={false} 
-                        onClick={() => handleSelectSecret(item.pokemon)} 
-                        showName={true}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
-              {loadingMore && (
-                <div className="scroll-loader">
-                  <div className="pokeball-loading mini"></div>
-                  <p>Buscando más Pokémon...</p>
-                </div>
-              )}
-              </div>
-            </div>
-          )
-        ) : (
-          <>
-            <header>
-              <div className="header-left"><h1>Sala: {roomCode}</h1></div>
-              <div className="turn-indicator">{gameState.turn === myPlayerNum ? "TU TURNO" : "TURNO RIVAL"}</div>
-            </header>
-
-            <div className="game-layout-single">
-              <div className="player-section">
-                <div className="secret-display">
-                  <div className="secret-actions">
-                    <button onClick={() => setShowSecret(!showSecret)} className="reveal-btn">
-                      {showSecret ? '🙈 OCULTAR MI SECRETO' : '🔍 REVELAR MI SECRETO'}
-                    </button>
-                    <button onClick={() => setShowSpy(!showSpy)} className={`spy-btn ${showSpy ? 'active' : ''}`} title={showSpy ? 'Volver al juego' : 'Ver mi tablero'}>
-                      {showSpy ? (
-                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                          <circle cx="12" cy="12" r="3" />
-                        </svg>
-                      ) : (
-                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M2 10a11 11 0 0 0 20 0" />
-                          <path d="m7 15-1.5 3" />
-                          <path d="m12 17v3" />
-                          <path d="m17 15 1.5 3" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-                  {showSecret && (myPlayerNum === 1 ? gameState.secretPokemon1 : gameState.secretPokemon2) && (
-                    <div className="secret-card-mini">
-                      <PokemonCard 
-                        pokemon={myPlayerNum === 1 ? gameState.secretPokemon1! : gameState.secretPokemon2!} 
-                        isFlipped={false} 
-                        onClick={() => {}} 
-                        isSecret 
-                        showName={true} 
-                      />
-                    </div>
-                  )}
-                </div>
-                
-                {showSpy ? (
-                  <div className="spy-view-container">
-                    <GameBoard 
-                      title="Tablero del Rival" 
-                      board={myPlayerNum === 1 ? gameState.board1 : gameState.board2} 
-                      onCardClick={() => {}} 
-                      showNames={true} 
-                    />
-                    <div className="spy-hint">⚠️ Estás viendo lo que tu rival ha tachado en tu tablero. No puedes mover nada aquí.</div>
-                  </div>
-                ) : (
+              {showSpy ? (
+                <div className="spy-view-container">
                   <GameBoard 
-                    title={isGuessMode ? "¡ADIVINA!" : "Mi Tablero"} 
-                    board={myPlayerNum === 1 ? gameState.board2 : gameState.board1} 
-                    onCardClick={handleCardClick} 
+                    title="Tablero del Rival" 
+                    board={myPlayerNum === 1 ? gameState.board1 : gameState.board2} 
+                    onCardClick={() => {}} 
                     showNames={true} 
                   />
+                  <div className="spy-hint">⚠️ Estás viendo lo que tu rival ha tachado en tu tablero. No puedes mover nada aquí.</div>
+                </div>
+              ) : (
+                <GameBoard 
+                  title={isGuessMode ? "¡ADIVINA!" : "Mi Tablero"} 
+                  board={myPlayerNum === 1 ? gameState.board2 : gameState.board1} 
+                  onCardClick={handleCardClick} 
+                  showNames={true} 
+                />
+              )}
+              
+              <div className="action-buttons">
+                {gameState.turn === myPlayerNum && (
+                  <>
+                    <button onClick={handleEndTurn} className="done-btn">TERMINAR TURNO</button>
+                    <button onClick={() => setIsGuessMode(!isGuessMode)} className={`finalize-btn ${isGuessMode ? 'guessing' : ''}`}>
+                      {isGuessMode ? 'CANCELAR' : '¿SÉ QUIÉN ES?'}
+                    </button>
+                  </>
                 )}
-                
-                <div className="action-buttons">
-                  {gameState.turn === myPlayerNum && (
-                    <>
-                      <button onClick={handleEndTurn} className="done-btn">TERMINAR TURNO</button>
-                      <button onClick={() => setIsGuessMode(!isGuessMode)} className={`finalize-btn ${isGuessMode ? 'guessing' : ''}`}>
-                        {isGuessMode ? 'CANCELAR' : '¿SÉ QUIÉN ES?'}
-                      </button>
-                    </>
-                  )}
-                </div>
               </div>
             </div>
-          </>
-        )}
-
-        {gameState.phase === 'gameover' && (
-          <>
-            {gameState.winner === myPlayerNum && (
-              <div className="confetti-container">
-                {[...Array(100)].map((_, i) => (
-                  <div 
-                    key={i} 
-                    className={`confetti c${i % 6}`} 
-                    style={{ 
-                      left: `${Math.random() * 100}%`, 
-                      animationDelay: `${Math.random() * 4}s`,
-                      opacity: Math.random()
-                    }} 
-                  />
-                ))}
-              </div>
-            )}
-            <div className="victory-overlay">
-              <div className="victory-card-epic">
-                <h1>{gameState.winner === myPlayerNum ? "🏆 ¡GANASTE! 🏆" : "💀 PERDISTE..."}</h1>
-                <img src={myPlayerNum === 1 ? gameState.secretPokemon2?.image : gameState.secretPokemon1?.image} className="winner-image" alt="Winner" />
-                <p>Era <span>{myPlayerNum === 1 ? gameState.secretPokemon2?.name : gameState.secretPokemon1?.name}</span></p>
-                <button onClick={() => window.location.reload()} className="play-again-btn">INICIO</button>
-              </div>
-            </div>
-          </>
-        )}
-
-        {chatVisible ? (
-          <div className={`chat-container ${isChatMinimized ? 'minimized' : ''}`}>
-            <div className="chat-header" onClick={() => setIsChatMinimized(!isChatMinimized)}>
-              <span>{isChatMinimized ? '💬 Chat' : '💬 Chat Multijugador'}</span>
-              {!isChatMinimized && <button onClick={(e) => { e.stopPropagation(); setChatVisible(false); }} style={{background:'none', border:'none', color:'#1e293b', cursor:'pointer', fontSize:'1.2rem', fontWeight:'bold'}}>×</button>}
-            </div>
-            {!isChatMinimized && (
-              <>
-                <div className="chat-messages" ref={chatMessagesRef}>
-                  {messages.length === 0 && <p className="message system">¡Suerte!</p>}
-                  {messages.map((m, i) => {
-                    const isMe = (myPlayerNum === 1 && m.sender === 'player1') || (myPlayerNum === 2 && m.sender === 'player2');
-                    return <div key={i} className={`message ${m.sender}`}>{m.sender !== 'system' && <strong>{isMe ? 'Tú: ' : 'Él: '}</strong>}{m.text}</div>;
-                  })}
-                </div>
-                <form className="chat-input-area" onSubmit={handleSendMessage}>
-                  <input type="text" placeholder="Escribe..." value={chatInput} onChange={(e) => setChatInput(e.target.value)} />
-                  <button type="submit">OK</button>
-                </form>
-              </>
-            )}
           </div>
-        ) : <button className="toggle-chat-btn" onClick={() => setChatVisible(true)}>💬 Chat</button>}
-      </div>
-    );
-  };
+        </>
+      )}
 
-  return renderContent();
+      {gameState.phase === 'gameover' && (
+        <GameOver 
+          winner={gameState.winner} 
+          myPlayerNum={myPlayerNum} 
+          secretPokemon1={gameState.secretPokemon1} 
+          secretPokemon2={gameState.secretPokemon2} 
+        />
+      )}
+
+      <Chat 
+        chatVisible={chatVisible}
+        setChatVisible={setChatVisible}
+        isChatMinimized={isChatMinimized}
+        setIsChatMinimized={setIsChatMinimized}
+        chatInput={chatInput}
+        setChatInput={setChatInput}
+        messages={messages}
+        myPlayerNum={myPlayerNum}
+        handleSendMessage={handleSendMessage}
+        chatMessagesRef={chatMessagesRef}
+      />
+    </div>
+  );
 }
 
 export default App;
