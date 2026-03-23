@@ -1,7 +1,12 @@
+* {
+  box-sizing: border-box;
+}
+
 #root {
   width: 100%;
   margin: 0 auto;
   text-align: center;
+  overflow-x: hidden;
 }
 
 body {
@@ -12,6 +17,7 @@ body {
   color: #fff;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   overflow-x: hidden;
+  width: 100%;
 }
 
 .app-container {
@@ -264,7 +270,10 @@ h1 {
 @media (max-width: 600px) {
   .setup-container {
     padding: 0;
-    height: 100dvh; /* Usa dynamic viewport height para evitar problemas con la barra del navegador */
+    height: 100dvh;
+    width: 100%;
+    left: 0;
+    overflow-x: hidden;
   }
 
   .floating-search-bar {
@@ -281,20 +290,27 @@ h1 {
   }
 
   .setup-board-scroll {
-    padding: 90px 8px 30px; /* Espacio para el buscador arriba */
+    padding: 100px 5px 30px; /* Padding top for floating bar */
+    width: 100%;
+    overflow-x: hidden;
   }
 
   .selection-grid {
     grid-template-columns: repeat(3, 1fr) !important;
-    gap: 8px !important;
-    padding: 10px !important;
+    gap: 6px !important;
+    padding: 8px !important;
     border-radius: 15px;
+    width: 100% !important;
+    margin: 0;
+    border-left: none;
+    border-right: none;
   }
 
   .setup-header-inside h1 {
     font-size: 1.5rem;
   }
 }
+
 
 /* NUEVA ANIMACIÓN GANADOR: PAPEL PICADO 3D */
 .confetti.paper {
