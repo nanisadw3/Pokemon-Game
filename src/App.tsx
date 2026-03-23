@@ -222,6 +222,14 @@ function App() {
 
     newSocket.on('update-game-state', (newState: GameState) => {
       setGameState(prev => {
+        // Alerta si es tu turno
+        if (prev.turn !== newState.turn && newState.turn === myPlayerNumRef.current && newState.phase === 'playing') {
+          setGameAlert({
+            title: "¡TU TURNO!",
+            message: "¡Tu rival ha fallado o ha terminado su turno! Te toca jugar.",
+            onConfirm: () => setGameAlert(null)
+          });
+        }
         const mergedState = { ...prev, ...newState };
         if (prev.secretPokemon1 && !newState.secretPokemon1) mergedState.secretPokemon1 = prev.secretPokemon1;
         if (prev.secretPokemon2 && !newState.secretPokemon2) mergedState.secretPokemon2 = prev.secretPokemon2;
@@ -337,6 +345,12 @@ function App() {
 
         setIsGuessMode(false);
         sendSystemMsg(`¡Vaya! Falló al intentar adivinar a ${clickedPokemon.name}. Turno de rival.`);
+
+        setGameAlert({
+          title: "¡FALLO!",
+          message: `El Pokémon no era ${clickedPokemon.name}. Es el turno de tu rival.`,
+          onConfirm: () => setGameAlert(null)
+        });
       }
     } else {
       setGameState(prev => {
