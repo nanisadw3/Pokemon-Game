@@ -157,10 +157,10 @@ function App() {
     if (myPlayerNum === 2) return;
 
     setLoading(true);
-    // Aumentamos a 150 pokemons para dar sensación de tablero infinito
-    const allData = await getRandomPokemons(150);
-    const p1 = allData.slice(0, 75);
-    const p2 = allData.slice(75, 150);
+    // Aumentamos a 300 pokemons para dar sensación de tablero infinito (150 por jugador)
+    const allData = await getRandomPokemons(300);
+    const p1 = allData.slice(0, 150);
+    const p2 = allData.slice(150, 300);
     
     const initialState: GameState = {
       board1: p1.map(p => ({ pokemon: p, isFlipped: false })),
@@ -353,25 +353,25 @@ function App() {
             </div>
           ) : (
             <div className="setup-container">
-              <div className="setup-hero-section">
-                <h1>Preparación Jugador {myPlayerNum}</h1>
-                <p>Busca cualquier Pokémon entre más de 10,000 variantes</p>
-                
-                <div className="main-search-wrapper">
-                  <div className="search-container">
-                    <input 
-                      type="text" 
-                      placeholder="🔎 Escribe: Pikachu, Mew, Char, Arceus..." 
-                      className="search-input-main" 
-                      value={searchTerm} 
-                      onChange={(e) => setSearchTerm(e.target.value)} 
-                    />
-                    {isSearchingGlobal && <div className="search-loader-main"></div>}
-                  </div>
+              <div className="floating-search-bar">
+                <div className="search-container">
+                  <input 
+                    type="text" 
+                    placeholder="Buscar pokemon" 
+                    className="search-input-floating" 
+                    value={searchTerm} 
+                    onChange={(e) => setSearchTerm(e.target.value)} 
+                  />
+                  {isSearchingGlobal && <div className="search-loader-main"></div>}
                 </div>
               </div>
               
               <div className="setup-board-scroll">
+                <div className="setup-header-inside">
+                  <h1>Preparación Jugador {myPlayerNum}</h1>
+                  <p>Elige tu Pokémon secreto del tablero o busca uno nuevo</p>
+                </div>
+
                 {searchTerm.trim().length > 0 ? (
                 <div className="search-results-section">
                   <h3>Resultados de búsqueda:</h3>
