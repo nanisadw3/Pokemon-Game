@@ -39,9 +39,11 @@ io.on('connection', (socket) => {
       if (game.players.length < 2) {
         socket.join(roomCode);
         game.players.push(socket.id);
+        
+        // Avisar a todos que el juego está listo
         io.to(roomCode).emit('game-ready', { players: game.players });
         
-        // Si ya hay un estado de juego (ej. por reconexión o inicio rápido), lo enviamos
+        // Si ya hay un estado de juego, lo enviamos inmediatamente al que se une
         if (game.gameState) {
           socket.emit('update-game-state', game.gameState);
         }

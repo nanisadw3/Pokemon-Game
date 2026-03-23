@@ -117,7 +117,11 @@ function App() {
 
     newSocket.on('game-ready', () => {
       setIsWaitingForOpponent(false);
-      initGameMultiplayer();
+      // Pequeño delay para asegurar que el otro jugador ya está en la sala de socket.io
+      // y reciba el primer sync-state
+      setTimeout(() => {
+        initGameMultiplayer(myPlayerNumRef.current);
+      }, 500);
     });
 
     newSocket.on('error-msg', (err: string) => {
@@ -154,8 +158,8 @@ function App() {
     socket?.emit('join-game', roomCode);
   };
 
-  const initGameMultiplayer = async () => {
-    if (myPlayerNum === 2) return;
+  const initGameMultiplayer = async (pNum: number | null) => {
+    if (pNum !== 1) return;
 
     setLoading(true);
     // Empezamos con 60 para que cargue rápido (30 por jugador)
