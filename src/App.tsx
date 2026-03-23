@@ -126,21 +126,29 @@ function App() {
     setLoading(false);
   }, [syncState]);
 
-  // Función para generar los tableros finales 5x5
+  // Función para generar los tableros finales 5x5 DIFERENTES
   const generateFinalBoards = useCallback(async (state: GameState) => {
     if (myPlayerNumRef.current !== 1) return; 
     setLoading(true);
 
     try {
-      // 23 extra + 2 secretos = 25
-      const extraData = await getRandomPokemons(23, [state.secretPokemon1!.id, state.secretPokemon2!.id]);
-      const pool = [state.secretPokemon1!, state.secretPokemon2!, ...extraData];
-      const shuffled = pool.sort(() => Math.random() - 0.5);
+      // Cargamos 48 Pokémon diferentes (24 para cada tablero)
+      // Excluimos los secretos elegidos por ambos para no repetirlos por azar
+      const extraData = await getRandomPokemons(48, [state.secretPokemon1!.id, state.secretPokemon2!.id]);
+      
+      const extraForBoard2 = extraData.slice(0, 24); // Para Player 1 (que juega en board2)
+      const extraForBoard1 = extraData.slice(24, 48); // Para Player 2 (que juega en board1)
+
+      // Board 2 es donde juega P1 -> Debe contener el secreto de P2
+      const pool2 = [state.secretPokemon2!, ...extraForBoard2].sort(() => Math.random() - 0.5);
+      
+      // Board 1 es donde juega P2 -> Debe contener el secreto de P1
+      const pool1 = [state.secretPokemon1!, ...extraForBoard1].sort(() => Math.random() - 0.5);
 
       const finalState: GameState = {
         ...state,
-        board1: shuffled.map(p => ({ pokemon: p, isFlipped: false })),
-        board2: shuffled.map(p => ({ pokemon: p, isFlipped: false })),
+        board1: pool1.map(p => ({ pokemon: p, isFlipped: false })),
+        board2: pool2.map(p => ({ pokemon: p, isFlipped: false })),
         phase: 'playing'
       };
 
