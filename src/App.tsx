@@ -15,6 +15,7 @@ interface ChatMessage {
 
 function App() {
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
   const [showSpy, setShowSpy] = useState(false);
   const [selectedAnim, setSelectedAnim] = useState<Pokemon | null>(null);
@@ -157,10 +158,10 @@ function App() {
     if (myPlayerNum === 2) return;
 
     setLoading(true);
-    // Aumentamos a 300 pokemons para dar sensación de tablero infinito (150 por jugador)
-    const allData = await getRandomPokemons(300);
-    const p1 = allData.slice(0, 150);
-    const p2 = allData.slice(150, 300);
+    // Empezamos con 60 para que cargue rápido (30 por jugador)
+    const allData = await getRandomPokemons(60);
+    const p1 = allData.slice(0, 30);
+    const p2 = allData.slice(30, 60);
     
     const initialState: GameState = {
       board1: p1.map(p => ({ pokemon: p, isFlipped: false })),
@@ -175,6 +176,40 @@ function App() {
     setGameState(initialState);
     syncState(initialState);
     setLoading(false);
+  };
+
+  const loadMorePokemons = async () => {
+    if (loadingMore || searchTerm.trim().length > 0 || gameState.phase !== 'setup') return;
+    setLoadingMore(true);
+    
+    try {
+      const currentBoard = myPlayerNum === 1 ? gameState.board1 : gameState.board2;
+      const excludeIds = currentBoard.map(item => item.pokemon.id);
+      
+      const moreData = await getRandomPokemons(30, excludeIds);
+      const newItems = moreData.map(p => ({ pokemon: p, isFlipped: false }));
+      
+      setGameState(prev => {
+        const boardKey = myPlayerNum === 1 ? 'board1' : 'board2';
+        const newState = {
+          ...prev,
+          [boardKey]: [...prev[boardKey], ...newItems]
+        };
+        syncState(newState);
+        return newState;
+      });
+    } catch (error) {
+      console.error("Error loading more pokemons", error);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    if (target.scrollHeight - target.scrollTop <= target.clientHeight + 100) {
+      loadMorePokemons();
+    }
   };
 
   const syncState = (newState: GameState) => {
@@ -366,10 +401,10 @@ function App() {
                 </div>
               </div>
               
-              <div className="setup-board-scroll">
+              <div className="setup-board-scroll" onScroll={handleScroll}>
                 <div className="setup-header-inside">
                   <h1>Preparación Jugador {myPlayerNum}</h1>
-                  <p>Elige tu Pokémon secreto del tablero o busca uno nuevo</p>
+                  <p>Desliza para ver más o busca tu favorito</p>
                 </div>
 
                 {searchTerm.trim().length > 0 ? (
@@ -422,6 +457,12 @@ function App() {
                     ))}
                   </div>
                 </>
+              )}
+              {loadingMore && (
+                <div className="scroll-loader">
+                  <div className="pokeball-loading mini"></div>
+                  <p>Buscando más Pokémon...</p>
+                </div>
               )}
               </div>
             </div>
