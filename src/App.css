@@ -510,26 +510,38 @@ h1 {
 .confetti {
   position: absolute;
   top: -20px;
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 20px; /* Forma de papel picado */
   background-color: #facc15;
   border-radius: 2px;
-  animation: confettiFall 4s linear infinite;
+  animation: confettiFall 5s ease-out forwards; /* Cambiado a forwards para que no se repita infinitamente */
+  box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
 }
 
-.confetti.c0 { background-color: #facc15; }
-.confetti.c1 { background-color: #3b82f6; }
-.confetti.c2 { background-color: #ef4444; }
-.confetti.c3 { background-color: #22c55e; }
-.confetti.c4 { background-color: #9333ea; }
-.confetti.c5 { background-color: #f97316; }
+.confetti.c0 { background-color: #facc15; width: 8px; height: 18px; }
+.confetti.c1 { background-color: #3b82f6; width: 12px; height: 12px; } /* Algunos cuadrados */
+.confetti.c2 { background-color: #ef4444; width: 10px; height: 22px; }
+.confetti.c3 { background-color: #22c55e; width: 9px; height: 15px; }
+.confetti.c4 { background-color: #9333ea; width: 14px; height: 10px; }
+.confetti.c5 { background-color: #f97316; width: 10px; height: 20px; }
 
 @keyframes confettiFall {
   0% {
-    transform: translateY(0) rotate(0deg);
+    transform: translateY(0) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+    opacity: 1;
+  }
+  25% {
+    transform: translateY(25vh) rotateX(180deg) rotateY(90deg) rotateZ(45deg);
+  }
+  50% {
+    transform: translateY(50vh) rotateX(360deg) rotateY(180deg) rotateZ(90deg);
+  }
+  75% {
+    transform: translateY(75vh) rotateX(540deg) rotateY(270deg) rotateZ(135deg);
   }
   100% {
-    transform: translateY(110vh) rotate(720deg);
+    transform: translateY(105vh) rotateX(720deg) rotateY(360deg) rotateZ(180deg);
+    opacity: 0; /* Se desvanece al final */
   }
 }
 

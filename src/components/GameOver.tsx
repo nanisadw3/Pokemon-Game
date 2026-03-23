@@ -18,12 +18,13 @@ const GameOver: React.FC<GameOverProps> = ({
   const opponentSecret = myPlayerNum === 1 ? secretPokemon2 : secretPokemon1;
 
   const confettiItems = useMemo(() => {
-    // Generar valores deterministas basados en el índice
-    return [...Array(100)].map((_, i) => ({
+    return [...Array(150)].map((_, i) => ({
       id: i,
-      left: `${(i * 7.7) % 100}%`,
-      delay: `${(i * 0.13) % 4}s`,
-      opacity: 0.5 + ((i * 0.1) % 0.5)
+      left: `${Math.random() * 100}%`, // Posición X aleatoria
+      delay: `${Math.random() * 3}s`, // Retraso aleatorio hasta 3 segundos
+      opacity: 0.6 + Math.random() * 0.4,
+      duration: `${4 + Math.random() * 3}s`, // Duración de caída aleatoria (4 a 7 seg)
+      scale: 0.5 + Math.random() * 1
     }));
   }, []);
 
@@ -38,7 +39,9 @@ const GameOver: React.FC<GameOverProps> = ({
               style={{ 
                 left: item.left, 
                 animationDelay: item.delay,
-                opacity: item.opacity
+                animationDuration: item.duration,
+                opacity: item.opacity,
+                transform: `scale(${item.scale})`
               }} 
             />
           ))}

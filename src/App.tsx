@@ -12,19 +12,6 @@ import { io, Socket } from 'socket.io-client';
 
 const SOCKET_SERVER_URL = "https://oyster-app-xwu29.ondigitalocean.app";
 
-// Audio Utils
-const playSound = (type: 'click' | 'success' | 'fail' | 'win') => {
-  const soundUrls = {
-    click: 'https://www.soundjay.com/buttons/sounds/button-16.mp3', // Click limpio
-    success: 'https://www.soundjay.com/buttons/sounds/button-3.mp3', // Acierto
-    fail: 'https://www.soundjay.com/buttons/sounds/button-10.mp3', // Error
-    win: 'https://www.soundjay.com/misc/sounds/bell-ring-01.mp3' // Victoria
-  };
-  const audio = new Audio(soundUrls[type]);
-  audio.volume = 0.3;
-  audio.play().catch(() => {}); // Evitar errores si el navegador bloquea audio
-};
-
 interface ChatMessage {
   sender: 'player1' | 'player2' | 'system';
   text: string;
@@ -285,7 +272,6 @@ function App() {
   };
 
   const handleSelectSecret = (pokemon: Pokemon) => {
-    playSound('click');
     setSelectedAnim(pokemon);
     setSearchTerm('');
     setGlobalResults([]);
@@ -310,7 +296,6 @@ function App() {
   const handleCardClick = (index: number) => {
     if (gameState.phase !== 'playing' || gameState.turn !== myPlayerNum) return;
     
-    playSound('click');
     const boardKey = myPlayerNum === 1 ? 'board2' : 'board1';
     const clickedPokemon = gameState[boardKey][index].pokemon;
 
@@ -318,13 +303,11 @@ function App() {
       const opponentSecret = myPlayerNum === 1 ? gameState.secretPokemon2 : gameState.secretPokemon1;
       
       if (clickedPokemon.id === opponentSecret?.id) {
-        playSound('win');
         const winState = { ...gameState, phase: 'gameover' as const, winner: myPlayerNum };
         setGameState(winState);
         syncState(winState);
       } else {
         // FALLO AL ADIVINAR: Tachar automáticamente y cambiar de turno
-        playSound('fail');
         const nextTurn = myPlayerNum === 1 ? 2 : 1;
         
         setGameState(prev => {
