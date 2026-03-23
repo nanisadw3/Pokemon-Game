@@ -131,7 +131,6 @@ function App() {
 
   const initGameMultiplayer = useCallback(async () => {
     setLoading(true);
-    // Para la selección inicial el Host carga los primeros 30 para ambos
     const allData = await getRandomPokemons(60);
     const p1 = allData.slice(0, 30);
     const p2 = allData.slice(30, 60);
@@ -151,7 +150,6 @@ function App() {
     setLoading(false);
   }, [syncState]);
 
-  // Función para generar los tableros finales 5x5
   const generateFinalBoards = useCallback(async (state: GameState) => {
     if (myPlayerNumRef.current !== 1) return; 
     setLoading(true);
@@ -179,7 +177,6 @@ function App() {
     }
   }, [syncState]);
 
-  // Watcher para transicionar a la fase de juego
   useEffect(() => {
     if (gameState.phase === 'setup' && 
         gameState.secretPokemon1 && 
@@ -190,7 +187,6 @@ function App() {
     }
   }, [gameState, selectedAnim, myPlayerNum, generateFinalBoards, loading]);
 
-  // NUEVO: Watcher para cargar Pokémon si el tablero está vacío en Setup
   useEffect(() => {
     if (gameState.phase === 'setup' && !loading) {
       const currentBoard = myPlayerNum === 1 ? gameState.board1 : gameState.board2;
@@ -200,7 +196,6 @@ function App() {
     }
   }, [gameState.phase, gameState.board1, gameState.board2, myPlayerNum, loading, loadingMore, loadMorePokemons]);
 
-  // Socket setup
   useEffect(() => {
     const newSocket: Socket = io(SOCKET_SERVER_URL, { transports: ['websocket'] });
     socketRef.current = newSocket;
@@ -228,7 +223,6 @@ function App() {
       if (myPlayerNumRef.current === 1) {
         setTimeout(() => initGameMultiplayer(), 1000);
       } else {
-        // El Jugador 2 pide estado pero también tiene su propio "vigilante" para cargar si falta algo
         setTimeout(() => {
           socketRef.current?.emit('request-game-state', roomCodeRef.current);
         }, 2000);
@@ -295,43 +289,56 @@ function App() {
   const handleCardClick = (index: number) => {
     if (gameState.phase !== 'playing' || gameState.turn !== myPlayerNum) return;
     
-    const newState = { ...gameState };
-    const board = myPlayerNum === 1 ? [...newState.board2] : [...newState.board1];
-    if (!board[index]) return;
-    const clickedPokemon = board[index].pokemon;
+    const boardKey = myPlayerNum === 1 ? 'board2' : 'board1';
+    const clickedPokemon = gameState[boardKey][index].pokemon;
 
     if (isGuessMode) {
       const opponentSecret = myPlayerNum === 1 ? gameState.secretPokemon2 : gameState.secretPokemon1;
+      
       if (clickedPokemon.id === opponentSecret?.id) {
-        newState.phase = 'gameover';
-        newState.winner = myPlayerNum;
+        const winState = { ...gameState, phase: 'gameover' as const, winner: myPlayerNum };
+        setGameState(winState);
+        syncState(winState);
       } else {
+        // FALLO AL ADIVINAR: Tachar automáticamente y cambiar de turno
+        const nextTurn = myPlayerNum === 1 ? 2 : 1;
+        
+        setGameState(prev => {
+          const newState = { ...prev };
+          const failBoard = [...newState[boardKey]];
+          // NO giramos la carta para que se vea la tacha (X) sobre el Pokémon
+          // pero la marcamos como isWrong permanentemente para que quede "tachada"
+          failBoard[index] = { ...failBoard[index], isFlipped: false, isWrong: true };
+          newState[boardKey] = failBoard;
+          newState.turn = nextTurn;
+          
+          syncState(newState);
+          return newState;
+        });
+
+        setIsGuessMode(false);
+        sendSystemMsg(`¡Vaya! Falló al intentar adivinar a ${clickedPokemon.name}. Turno de rival.`);
+
         setGameAlert({
-          title: "¡ERROR!",
-          message: `El Pokémon de él no es ${clickedPokemon.name}.`,
+          title: "¡FALLASTE!",
+          message: `El Pokémon de tu rival NO es ${clickedPokemon.name}. Turno de tu rival.`,
           onConfirm: () => {
             setGameAlert(null);
-            const failState = { ...gameState };
-            const failBoard = myPlayerNum === 1 ? [...failState.board2] : [...failState.board1];
-            failBoard[index].isFlipped = true;
-            if (myPlayerNum === 1) failState.board2 = failBoard; else failState.board1 = failBoard;
-            failState.turn = myPlayerNum === 1 ? 2 : 1;
-            setIsGuessMode(false);
-            setGameState(failState);
-            syncState(failState);
-            sendSystemMsg(`¡Vaya! Fallaste al adivinar a ${clickedPokemon.name}.`);
+            // No quitamos isWrong para que la tacha permanezca visible
           }
         });
-        return;
       }
     } else {
-      board[index].isFlipped = !board[index].isFlipped;
-      sendSystemMsg(`${board[index].isFlipped ? 'Tachó' : 'Des-tachó'} a ${clickedPokemon.name}.`);
+      setGameState(prev => {
+        const newState = { ...prev };
+        const board = [...newState[boardKey]];
+        board[index] = { ...board[index], isFlipped: !board[index].isFlipped };
+        newState[boardKey] = board;
+        syncState(newState);
+        sendSystemMsg(`${board[index].isFlipped ? 'Tachó' : 'Des-tachó'} a ${clickedPokemon.name}.`);
+        return newState;
+      });
     }
-
-    if (myPlayerNum === 1) newState.board2 = board; else newState.board1 = board;
-    setGameState(newState);
-    syncState(newState);
   };
 
   const handleSendMessage = (e?: React.FormEvent) => {
