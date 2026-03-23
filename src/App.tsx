@@ -105,8 +105,33 @@ function App() {
     socketRef.current?.emit('sync-game-state', { roomCode: roomCodeRef.current, gameState: newState });
   }, []);
 
+  const loadMorePokemons = useCallback(async () => {
+    if (gameState.phase !== 'setup') return;
+    if (loadingMore || searchTerm.trim().length > 0) return;
+    
+    setLoadingMore(true);
+    try {
+      const currentBoard = myPlayerNumRef.current === 1 ? gameState.board1 : gameState.board2;
+      const excludeIds = currentBoard.map(item => item.pokemon.id);
+      const moreData = await getRandomPokemons(30, excludeIds);
+      const newItems = moreData.map(p => ({ pokemon: p, isFlipped: false }));
+      
+      setGameState(prev => {
+        const boardKey = myPlayerNumRef.current === 1 ? 'board1' : 'board2';
+        const newState = { ...prev, [boardKey]: [...prev[boardKey], ...newItems] };
+        syncState(newState);
+        return newState;
+      });
+    } catch (error) {
+      console.error("Error loading more pokemons", error);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [gameState.board1, gameState.board2, gameState.phase, loadingMore, searchTerm, syncState]);
+
   const initGameMultiplayer = useCallback(async () => {
     setLoading(true);
+    // Para la selección inicial el Host carga los primeros 30 para ambos
     const allData = await getRandomPokemons(60);
     const p1 = allData.slice(0, 30);
     const p2 = allData.slice(30, 60);
@@ -126,23 +151,16 @@ function App() {
     setLoading(false);
   }, [syncState]);
 
-  // Función para generar los tableros finales 5x5 DIFERENTES
+  // Función para generar los tableros finales 5x5
   const generateFinalBoards = useCallback(async (state: GameState) => {
     if (myPlayerNumRef.current !== 1) return; 
     setLoading(true);
 
     try {
-      // Cargamos 48 Pokémon diferentes (24 para cada tablero)
-      // Excluimos los secretos elegidos por ambos para no repetirlos por azar
       const extraData = await getRandomPokemons(48, [state.secretPokemon1!.id, state.secretPokemon2!.id]);
-      
-      const extraForBoard2 = extraData.slice(0, 24); // Para Player 1 (que juega en board2)
-      const extraForBoard1 = extraData.slice(24, 48); // Para Player 2 (que juega en board1)
-
-      // Board 2 es donde juega P1 -> Debe contener el secreto de P2
+      const extraForBoard2 = extraData.slice(0, 24);
+      const extraForBoard1 = extraData.slice(24, 48);
       const pool2 = [state.secretPokemon2!, ...extraForBoard2].sort(() => Math.random() - 0.5);
-      
-      // Board 1 es donde juega P2 -> Debe contener el secreto de P1
       const pool1 = [state.secretPokemon1!, ...extraForBoard1].sort(() => Math.random() - 0.5);
 
       const finalState: GameState = {
@@ -168,12 +186,19 @@ function App() {
         gameState.secretPokemon2 && 
         !selectedAnim && 
         !loading) {
-      
-      if (myPlayerNum === 1) {
-        generateFinalBoards(gameState);
-      }
+      if (myPlayerNum === 1) generateFinalBoards(gameState);
     }
   }, [gameState, selectedAnim, myPlayerNum, generateFinalBoards, loading]);
+
+  // NUEVO: Watcher para cargar Pokémon si el tablero está vacío en Setup
+  useEffect(() => {
+    if (gameState.phase === 'setup' && !loading) {
+      const currentBoard = myPlayerNum === 1 ? gameState.board1 : gameState.board2;
+      if (currentBoard.length === 0 && !loadingMore) {
+        loadMorePokemons();
+      }
+    }
+  }, [gameState.phase, gameState.board1, gameState.board2, myPlayerNum, loading, loadingMore, loadMorePokemons]);
 
   // Socket setup
   useEffect(() => {
@@ -203,9 +228,10 @@ function App() {
       if (myPlayerNumRef.current === 1) {
         setTimeout(() => initGameMultiplayer(), 1000);
       } else {
+        // El Jugador 2 pide estado pero también tiene su propio "vigilante" para cargar si falta algo
         setTimeout(() => {
           socketRef.current?.emit('request-game-state', roomCodeRef.current);
-        }, 3000);
+        }, 2000);
       }
     });
 
@@ -235,30 +261,6 @@ function App() {
     if (!roomCode.trim()) return alert("Ingresa un código de sala");
     socketRef.current?.emit('join-game', roomCode);
     setMyPlayerNum(2);
-  };
-
-  const loadMorePokemons = async () => {
-    if (gameState.phase !== 'setup') return;
-    if (loadingMore || searchTerm.trim().length > 0) return;
-    
-    setLoadingMore(true);
-    try {
-      const currentBoard = myPlayerNum === 1 ? gameState.board1 : gameState.board2;
-      const excludeIds = currentBoard.map(item => item.pokemon.id);
-      const moreData = await getRandomPokemons(30, excludeIds);
-      const newItems = moreData.map(p => ({ pokemon: p, isFlipped: false }));
-      
-      setGameState(prev => {
-        const boardKey = myPlayerNum === 1 ? 'board1' : 'board2';
-        const newState = { ...prev, [boardKey]: [...prev[boardKey], ...newItems] };
-        syncState(newState);
-        return newState;
-      });
-    } catch (error) {
-      console.error("Error loading more pokemons", error);
-    } finally {
-      setLoadingMore(false);
-    }
   };
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
