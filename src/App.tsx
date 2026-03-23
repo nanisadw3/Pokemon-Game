@@ -44,6 +44,13 @@ function App() {
   const [isChatMinimized, setIsChatMinimized] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [notification, setNotification] = useState<{ text: string, type: 'info' | 'error' | 'success' } | null>(null);
+
+  // Función para mostrar notificación rápida
+  const showToast = (text: string, type: 'info' | 'error' | 'success' = 'info') => {
+    setNotification({ text, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
   
   // Game Data
   const [allNames, setAllNames] = useState<{name: string, url: string}[]>([]);
@@ -224,11 +231,7 @@ function App() {
       setGameState(prev => {
         // Alerta si es tu turno
         if (prev.turn !== newState.turn && newState.turn === myPlayerNumRef.current && newState.phase === 'playing') {
-          setGameAlert({
-            title: "¡TU TURNO!",
-            message: "¡Tu rival ha fallado o ha terminado su turno! Te toca jugar.",
-            onConfirm: () => setGameAlert(null)
-          });
+          showToast('¡Es tu turno!', 'success');
         }
         const mergedState = { ...prev, ...newState };
         if (prev.secretPokemon1 && !newState.secretPokemon1) mergedState.secretPokemon1 = prev.secretPokemon1;
@@ -346,11 +349,7 @@ function App() {
         setIsGuessMode(false);
         sendSystemMsg(`¡Vaya! Falló al intentar adivinar a ${clickedPokemon.name}. Turno de rival.`);
 
-        setGameAlert({
-          title: "¡FALLO!",
-          message: `El Pokémon no era ${clickedPokemon.name}. Es el turno de tu rival.`,
-          onConfirm: () => setGameAlert(null)
-        });
+        showToast(`No es ${clickedPokemon.name}`, 'error');
       }
     } else {
       setGameState(prev => {
@@ -406,6 +405,15 @@ function App() {
     <div className="app-container">
       {!isConnected && <div className="connection-error">⚠️ Desconectado del servidor...</div>}
       
+      {notification && (
+        <div className={`modern-notification ${notification.type}`}>
+          {notification.type === 'success' && <span>✅</span>}
+          {notification.type === 'error' && <span>❌</span>}
+          {notification.type === 'info' && <span>🔔</span>}
+          <strong>{notification.text}</strong>
+        </div>
+      )}
+
       {selectedAnim && (
         <div className="selection-overlay">
           <div className="anim-content">

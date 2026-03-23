@@ -312,9 +312,46 @@ h1 {
 }
 
 
-/* TARJETA FINAL ARMONIZADA */
-.victory-overlay {
+/* NOTIFICACIONES MODERNAS (TOASTS) */
+.modern-notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(10px);
+  border: 3px solid #facc15;
+  border-radius: 20px;
+  padding: 15px 30px;
+  color: #fff;
+  z-index: 50000;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  animation: toastSlideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  pointer-events: none; /* No bloquea clics */
+}
+
+.modern-notification.success { border-color: #22c55e; }
+.modern-notification.error { border-color: #ef4444; }
+
+@keyframes toastSlideIn {
+  from { transform: translate(-50%, -100px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+@keyframes toastFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@media (max-width: 600px) {
+  .modern-notification {
+    width: 90%;
+    padding: 12px 20px;
+    font-size: 0.9rem;
+  }
 }
 
 .victory-card-epic {
