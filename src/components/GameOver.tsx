@@ -17,28 +17,21 @@ const GameOver: React.FC<GameOverProps> = ({
   const isWinner = winner === myPlayerNum;
   const opponentSecret = myPlayerNum === 1 ? secretPokemon2 : secretPokemon1;
 
-  const winnerDiamonds = useMemo(() => {
-    return [...Array(120)].map((_, i) => {
-      const angle = Math.random() * Math.PI * 2;
-      const dist = 50 + Math.random() * 600;
-      return {
-        id: i,
-        tx: `${Math.cos(angle) * dist}px`,
-        ty: `${Math.sin(angle) * dist}px`,
-        delay: `${Math.random() * 0.5}s`,
-        color: ['#fff', '#facc15', '#3b82f6'][i % 3]
-      };
-    });
-  }, []);
-
-  const loserNebula = useMemo(() => {
-    return [...Array(15)].map((_, i) => ({
+  const winnerStars = useMemo(() => {
+    return [...Array(60)].map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`,
-      tx: `${(Math.random() - 0.5) * 200}px`,
-      ty: `${(Math.random() - 0.5) * 200}px`,
-      delay: `${Math.random() * 2}s`
+      delay: `${Math.random() * 3}s`,
+      duration: `${3 + Math.random() * 2}s`
+    }));
+  }, []);
+
+  const loserOrbs = useMemo(() => {
+    return [...Array(40)].map((_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      top: `${100 + Math.random() * 20}%`,
+      delay: `${Math.random() * 4}s`
     }));
   }, []);
 
@@ -47,55 +40,49 @@ const GameOver: React.FC<GameOverProps> = ({
       <div className="victory-overlay">
         {isWinner ? (
           <div className="confetti-container">
-            {winnerDiamonds.map((d) => (
+            {winnerStars.map((star) => (
               <div 
-                key={d.id} 
-                className="particle-diamond" 
+                key={star.id} 
+                className="particle-star" 
                 style={{ 
-                  left: '50%', 
-                  top: '50%',
-                  backgroundColor: d.color,
-                  '--tx': d.tx,
-                  '--ty': d.ty,
-                  animationDelay: d.delay 
-                } as React.CSSProperties} 
+                  left: star.left, 
+                  animationDelay: star.delay, 
+                  animationDuration: star.duration 
+                }} 
               />
             ))}
           </div>
         ) : (
           <div className="confetti-container">
-            {loserNebula.map((n) => (
+            {loserOrbs.map((orb) => (
               <div 
-                key={n.id} 
-                className="particle-nebula" 
+                key={orb.id} 
+                className="particle-orb" 
                 style={{ 
-                  left: n.left, 
-                  top: n.top,
-                  '--tx': n.tx,
-                  '--ty': n.ty,
-                  animationDelay: n.delay 
-                } as React.CSSProperties} 
+                  left: orb.left, 
+                  top: orb.top,
+                  animationDelay: orb.delay 
+                }} 
               />
             ))}
           </div>
         )}
 
         <div className="victory-card-epic">
-          <h1>{isWinner ? "🏆 VICTORIA 🏆" : "💫 REINTENTAR 💫"}</h1>
+          <h1>{isWinner ? "🏆 ¡LO LOGRASTE! 🏆" : "🌟 BUEN INTENTO 🌟"}</h1>
           <img 
             src={opponentSecret?.image} 
             className="winner-image" 
             alt="Pokemon" 
-            style={{ width: '250px', height: '250px', filter: 'drop-shadow(0 0 30px rgba(255,255,255,0.3))' }}
+            style={{ width: '280px', height: '280px' }}
           />
-          <p style={{ margin: '20px 0', fontSize: '1.2rem', opacity: 0.8 }}>El Pokémon era</p>
-          <h2 style={{ fontSize: '2.5rem', color: '#facc15', textTransform: 'uppercase', marginBottom: '40px' }}>
+          <p style={{ margin: '15px 0', fontSize: '1.2rem', opacity: 0.9 }}>El Pokémon secreto era</p>
+          <h2 style={{ fontSize: '2.5rem', color: '#facc15', textTransform: 'uppercase', marginBottom: '20px' }}>
             {opponentSecret?.name}
           </h2>
           <button 
             onClick={() => window.location.reload()} 
             className="play-again-btn"
-            style={{ padding: '20px 50px', fontSize: '1.4rem' }}
           >
             NUEVA PARTIDA
           </button>

@@ -155,17 +155,15 @@ function App() {
     setLoading(true);
 
     try {
-      // Para que el juego sea real, ambos tableros deben tener los mismos candidatos.
-      // Necesitamos 23 Pokémon extra que, sumados a los 2 secretos, dan el total de 25.
-      const decoysNeeded = 23; 
+      // Necesitamos 24 Pokémon extra comunes para rellenar
+      const decoysNeeded = 24; 
       const commonDecoys = await getRandomPokemons(decoysNeeded, [state.secretPokemon1!.id, state.secretPokemon2!.id]);
       
-      // El pool total de 25 Pokémon que ambos jugadores verán
-      const finalPool = [state.secretPokemon1!, state.secretPokemon2!, ...commonDecoys];
-
-      // Mezclamos el pool de forma diferente para cada tablero
-      const board1Pool = [...finalPool].sort(() => Math.random() - 0.5);
-      const board2Pool = [...finalPool].sort(() => Math.random() - 0.5);
+      // Tablero 1 (visto por P2): Contiene secreto P1 + 24 decoys. NO contiene secreto P2.
+      const board1Pool = [state.secretPokemon1!, ...commonDecoys].sort(() => Math.random() - 0.5);
+      
+      // Tablero 2 (visto por P1): Contiene secreto P2 + 24 decoys. NO contiene secreto P1.
+      const board2Pool = [state.secretPokemon2!, ...commonDecoys].sort(() => Math.random() - 0.5);
 
       const finalState: GameState = {
         ...state,
