@@ -372,14 +372,15 @@ function App() {
           ) : (
             <div className="setup-container">
               <div className="setup-hero-section">
+                <span className="version-tag">v2.1 - Búsqueda Total</span>
                 <h1>Preparación Jugador {myPlayerNum}</h1>
-                <p>Busca cualquier Pokémon o elige uno del tablero</p>
+                <p>Busca cualquier Pokémon entre más de 10,000 variantes</p>
                 
                 <div className="main-search-wrapper">
                   <div className="search-container">
                     <input 
                       type="text" 
-                      placeholder="🔎 Escribe el nombre de un Pokémon (Pika, Char, Mew...)" 
+                      placeholder="🔎 Escribe: Pikachu, Mew, Char, Arceus..." 
                       className="search-input-main" 
                       value={searchTerm} 
                       onChange={(e) => setSearchTerm(e.target.value)} 
@@ -390,12 +391,12 @@ function App() {
 
                 <div className="setup-secondary-actions">
                   <button onClick={refreshBoard} className={`refresh-btn-secondary ${refreshing ? 'spinning' : ''}`} disabled={refreshing}>
-                    🔄 CAMBIAR OPCIONES DEL TABLERO
+                    🔄 GENERAR NUEVAS OPCIONES ALEATORIAS
                   </button>
                 </div>
               </div>
               
-              {searchTerm.length > 0 ? (
+              {searchTerm.trim().length > 0 ? (
                 <div className="search-results-section">
                   <h3>Resultados de búsqueda:</h3>
                   <div className="selection-grid">
