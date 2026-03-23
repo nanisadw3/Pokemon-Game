@@ -463,7 +463,7 @@ function App() {
                       )}
                     </button>
                   </div>
-                  {showSecret && (
+                  {showSecret && (myPlayerNum === 1 ? gameState.secretPokemon1 : gameState.secretPokemon2) && (
                     <div className="secret-card-mini">
                       <PokemonCard 
                         pokemon={myPlayerNum === 1 ? gameState.secretPokemon1! : gameState.secretPokemon2!} 
