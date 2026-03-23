@@ -64,58 +64,52 @@ io.on('connection', (socket) => {
       const current = activeGames[roomCode].gameState || {};
       const incoming = gameState;
 
-      // Si no hay estado previo, aceptamos el entrante (útil para inicio)
-      if (!activeGames[roomCode].gameState) {
-        activeGames[roomCode].gameState = incoming;
-        socket.to(roomCode).emit('update-game-state', incoming);
-        return;
-      }
-
       // Base: empezamos con el estado actual del servidor
-      const merged = { ...current };
-
-      // Fase, Turno y Ganador: El último cambio válido manda
-      if (incoming.phase) merged.phase = incoming.phase;
-      if (incoming.turn !== undefined && incoming.turn !== current.turn) merged.turn = incoming.turn;
-      if (incoming.winner !== undefined) merged.winner = incoming.winner;
+      const merged = { ...current, ...incoming };
 
       // Secretos: Solo el dueño puede establecer su propio secreto
-      if (playerNum === 1 && incoming.secretPokemon1) merged.secretPokemon1 = incoming.secretPokemon1;
-      if (playerNum === 2 && incoming.secretPokemon2) merged.secretPokemon2 = incoming.secretPokemon2;
-      
-      // Asegurar que no perdemos secretos ya guardados si el incoming viene con null
-      if (current.secretPokemon1 && !merged.secretPokemon1) merged.secretPokemon1 = current.secretPokemon1;
-      if (current.secretPokemon2 && !merged.secretPokemon2) merged.secretPokemon2 = current.secretPokemon2;
-
-      // Tablero 1: P1 es dueño del contenido (Pokémon), P2 es dueño de las tachaduras (flips)
-      if (incoming.board1 && merged.board1) {
-        merged.board1 = merged.board1.map((item, i) => {
-          const incItem = incoming.board1[i];
-          return {
-            pokemon: playerNum === 1 ? (incItem?.pokemon || item.pokemon) : item.pokemon,
-            isFlipped: playerNum === 2 ? (incItem?.isFlipped ?? item.isFlipped) : item.isFlipped
-          };
-        });
-      } else if (incoming.board1) {
-        merged.board1 = incoming.board1;
+      if (playerNum === 1) {
+        merged.secretPokemon1 = incoming.secretPokemon1 || current.secretPokemon1;
+        merged.secretPokemon2 = current.secretPokemon2;
+      } else {
+        merged.secretPokemon2 = incoming.secretPokemon2 || current.secretPokemon2;
+        merged.secretPokemon1 = current.secretPokemon1;
       }
 
-      // Tablero 2: P2 es dueño del contenido, P1 es dueño de las tachaduras
-      if (incoming.board2 && merged.board2) {
-        merged.board2 = merged.board2.map((item, i) => {
-          const incItem = incoming.board2[i];
-          return {
-            pokemon: playerNum === 2 ? (incItem?.pokemon || item.pokemon) : item.pokemon,
-            isFlipped: playerNum === 1 ? (incItem?.isFlipped ?? item.isFlipped) : item.isFlipped
-          };
-        });
-      } else if (incoming.board2) {
-        merged.board2 = incoming.board2;
-      }
+      // Función auxiliar para fusionar tableros sin perder longitud ni datos
+      const mergeBoard = (currentBoard, incomingBoard, isOwner) => {
+        if (!incomingBoard) return currentBoard;
+        if (!currentBoard) return incomingBoard;
+
+        const maxLength = Math.max(currentBoard.length, incomingBoard.length);
+        const result = [];
+        for (let i = 0; i < maxLength; i++) {
+          const cur = currentBoard[i];
+          const inc = incomingBoard[i];
+          
+          result.push({
+            // El dueño del tablero manda en el pokemon, el otro manda en el isFlipped
+            pokemon: isOwner ? (inc?.pokemon || cur?.pokemon) : (cur?.pokemon || inc?.pokemon),
+            isFlipped: isOwner ? (cur?.isFlipped ?? inc?.isFlipped) : (inc?.isFlipped ?? cur?.isFlipped)
+          });
+        }
+        return result;
+      };
+
+      merged.board1 = mergeBoard(current.board1, incoming.board1, playerNum === 1);
+      merged.board2 = mergeBoard(current.board2, incoming.board2, playerNum === 2);
 
       activeGames[roomCode].gameState = merged;
-      // Enviamos el estado fusionado a los demás
-      socket.to(roomCode).emit('update-game-state', merged);
+      // Enviamos el estado fusionado a TODOS en la sala (incluyendo al emisor para confirmar)
+      io.to(roomCode).emit('update-game-state', merged);
+    }
+  });
+
+  // Permitir que un jugador pida el estado actual si se quedó atrás
+  socket.on('request-game-state', (roomCode) => {
+    const game = activeGames[roomCode];
+    if (game && game.gameState) {
+      socket.emit('update-game-state', game.gameState);
     }
   });
 

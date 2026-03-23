@@ -119,14 +119,28 @@ function App() {
 
     newSocket.on('game-ready', () => {
       setIsWaitingForOpponent(false);
-      // Ahora sí, cuando ambos están listos, mostramos la carga general
       setLoading(true);
       
-      // Pequeño delay para asegurar que el otro jugador ya está en la sala de socket.io
-      // y reciba el primer sync-state
-      setTimeout(() => {
-        initGameMultiplayer(myPlayerNumRef.current);
-      }, 500);
+      // El Jugador 1 genera el tablero
+      if (myPlayerNumRef.current === 1) {
+        setTimeout(() => {
+          initGameMultiplayer(1);
+        }, 1000);
+      } else {
+        // El Jugador 2 pide el estado por si acaso se perdió el primer mensaje
+        // O espera a que el J1 termine de cargar e inicializar
+        setTimeout(() => {
+          newSocket.emit('request-game-state', roomCode);
+        }, 3000);
+
+        // Fallback de seguridad: quitar pantalla de carga tras 8 segundos si no hay respuesta
+        setTimeout(() => {
+          setLoading(prev => {
+            if (prev) return false;
+            return prev;
+          });
+        }, 8000);
+      }
     });
 
     newSocket.on('error-msg', (err: string) => {
@@ -135,45 +149,17 @@ function App() {
     });
 
     return () => { newSocket.disconnect(); };
-  }, []);
-
-  useEffect(() => {
-    if (chatMessagesRef.current) {
-      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
-    }
-  }, [messages, isChatMinimized, chatVisible]);
-
-  // Minimizar chat automáticamente al iniciar el duelo
-  useEffect(() => {
-    if (gameState.phase === 'playing') {
-      setIsChatMinimized(true);
-    }
-  }, [gameState.phase]);
-
-  const createGame = () => {
-    if (!roomCode.trim()) return alert("Escribe un código de sala");
-    // No ponemos loading aquí para que se vea la caja de "Esperando a tu rival" en el lobby
-    setMyPlayerNum(1);
-    setIsWaitingForOpponent(true);
-    socket?.emit('create-game', roomCode);
-  };
-
-  const joinGame = () => {
-    if (!roomCode.trim()) return alert("Escribe un código de sala");
-    // Al unirse, sí podemos poner loading porque el juego debería empezar casi de inmediato
-    setLoading(true);
-    setMyPlayerNum(2);
-    socket?.emit('join-game', roomCode);
-  };
+  }, [roomCode]); // Añadimos roomCode a las dependencias para que request-game-state funcione
 
   const initGameMultiplayer = async (pNum: number | null) => {
     if (pNum !== 1) return;
 
     setLoading(true);
-    // Empezamos con 60 para que cargue rápido (30 por jugador)
-    const allData = await getRandomPokemons(60);
-    const p1 = allData.slice(0, 30);
-    const p2 = allData.slice(30, 60);
+    // Empezamos con 40 para que cargue súper rápido (20 por jugador)
+    // El scroll infinito hará el resto
+    const allData = await getRandomPokemons(40);
+    const p1 = allData.slice(0, 20);
+    const p2 = allData.slice(20, 40);
     
     const initialState: GameState = {
       board1: p1.map(p => ({ pokemon: p, isFlipped: false })),
