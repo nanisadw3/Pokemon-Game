@@ -107,7 +107,6 @@ function App() {
 
   const initGameMultiplayer = useCallback(async () => {
     setLoading(true);
-    // Para la selección inicial cargamos 60 Pokémon
     const allData = await getRandomPokemons(60);
     const p1 = allData.slice(0, 30);
     const p2 = allData.slice(30, 60);
@@ -127,32 +126,46 @@ function App() {
     setLoading(false);
   }, [syncState]);
 
-  // Función crítica: Generar el tablero final 5x5
+  // Función para generar los tableros finales 5x5
   const generateFinalBoards = useCallback(async (state: GameState) => {
-    if (myPlayerNumRef.current !== 1) return; // Solo el host genera
+    if (myPlayerNumRef.current !== 1) return; 
     setLoading(true);
 
-    // Necesitamos 23 Pokémon aleatorios extra para completar los 25 (2 ya son los secretos)
-    const extraData = await getRandomPokemons(23, [state.secretPokemon1!.id, state.secretPokemon2!.id]);
-    
-    // El tablero de cada jugador debe contener el secreto del rival
-    // Para que sea justo, ambos verán el mismo grupo de 25 candidatos
-    const pool = [state.secretPokemon1!, state.secretPokemon2!, ...extraData];
-    
-    // Desordenar pool
-    const shuffled = pool.sort(() => Math.random() - 0.5);
+    try {
+      // 23 extra + 2 secretos = 25
+      const extraData = await getRandomPokemons(23, [state.secretPokemon1!.id, state.secretPokemon2!.id]);
+      const pool = [state.secretPokemon1!, state.secretPokemon2!, ...extraData];
+      const shuffled = pool.sort(() => Math.random() - 0.5);
 
-    const finalState: GameState = {
-      ...state,
-      board1: shuffled.map(p => ({ pokemon: p, isFlipped: false })),
-      board2: shuffled.map(p => ({ pokemon: p, isFlipped: false })),
-      phase: 'playing'
-    };
+      const finalState: GameState = {
+        ...state,
+        board1: shuffled.map(p => ({ pokemon: p, isFlipped: false })),
+        board2: shuffled.map(p => ({ pokemon: p, isFlipped: false })),
+        phase: 'playing'
+      };
 
-    setGameState(finalState);
-    syncState(finalState);
-    setLoading(false);
+      setGameState(finalState);
+      syncState(finalState);
+    } catch (error) {
+      console.error("Error generating final boards", error);
+    } finally {
+      setLoading(false);
+    }
   }, [syncState]);
+
+  // Watcher para transicionar a la fase de juego
+  useEffect(() => {
+    if (gameState.phase === 'setup' && 
+        gameState.secretPokemon1 && 
+        gameState.secretPokemon2 && 
+        !selectedAnim && 
+        !loading) {
+      
+      if (myPlayerNum === 1) {
+        generateFinalBoards(gameState);
+      }
+    }
+  }, [gameState, selectedAnim, myPlayerNum, generateFinalBoards, loading]);
 
   // Socket setup
   useEffect(() => {
@@ -167,13 +180,6 @@ function App() {
         const mergedState = { ...prev, ...newState };
         if (prev.secretPokemon1 && !newState.secretPokemon1) mergedState.secretPokemon1 = prev.secretPokemon1;
         if (prev.secretPokemon2 && !newState.secretPokemon2) mergedState.secretPokemon2 = prev.secretPokemon2;
-        
-        // Si ambos secretos están listos y aún estamos en setup, el Jugador 1 genera los tableros
-        if (mergedState.secretPokemon1 && mergedState.secretPokemon2 && mergedState.phase === 'setup' && !selectedAnimRef.current) {
-          if (myPlayerNumRef.current === 1) {
-            generateFinalBoards(mergedState);
-          }
-        }
         return mergedState;
       });
       setLoading(false);
@@ -204,7 +210,7 @@ function App() {
       newSocket.disconnect(); 
       socketRef.current = null;
     };
-  }, [initGameMultiplayer, generateFinalBoards]);
+  }, [initGameMultiplayer]);
 
   const createGame = () => {
     let code = roomCode.trim();
@@ -224,10 +230,9 @@ function App() {
   };
 
   const loadMorePokemons = async () => {
-    // Solo permitimos cargar más en la fase de SETUP para elegir
     if (gameState.phase !== 'setup') return;
-    
     if (loadingMore || searchTerm.trim().length > 0) return;
+    
     setLoadingMore(true);
     try {
       const currentBoard = myPlayerNum === 1 ? gameState.board1 : gameState.board2;
@@ -270,7 +275,6 @@ function App() {
 
     setTimeout(() => {
       setSelectedAnim(null);
-      // Aquí no pasamos a playing, esperamos a que el socket detecte ambos secretos
     }, 2500);
   };
 
