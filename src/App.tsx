@@ -119,10 +119,8 @@ function App() {
 
     newSocket.on('game-ready', () => {
       setIsWaitingForOpponent(false);
-      // El Jugador 2 ya se puede ver "listo" aunque espere el tablero
-      if (myPlayerNumRef.current === 2) {
-        setLoading(false); 
-      }
+      // Ahora sí, cuando ambos están listos, mostramos la carga general
+      setLoading(true);
       
       // Pequeño delay para asegurar que el otro jugador ya está en la sala de socket.io
       // y reciba el primer sync-state
@@ -154,7 +152,7 @@ function App() {
 
   const createGame = () => {
     if (!roomCode.trim()) return alert("Escribe un código de sala");
-    setLoading(true);
+    // No ponemos loading aquí para que se vea la caja de "Esperando a tu rival" en el lobby
     setMyPlayerNum(1);
     setIsWaitingForOpponent(true);
     socket?.emit('create-game', roomCode);
@@ -162,6 +160,7 @@ function App() {
 
   const joinGame = () => {
     if (!roomCode.trim()) return alert("Escribe un código de sala");
+    // Al unirse, sí podemos poner loading porque el juego debería empezar casi de inmediato
     setLoading(true);
     setMyPlayerNum(2);
     socket?.emit('join-game', roomCode);
