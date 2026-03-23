@@ -102,6 +102,10 @@
 @media (max-width: 600px) {
   .card {
     animation: none !important;
+    width: calc(33% - 8px); /* 3 columnas */
+    min-width: 100px;
+    flex-grow: 0;
+    flex-shrink: 0;
   }
   .pokemonName {
     display: block !important;

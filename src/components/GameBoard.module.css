@@ -33,7 +33,9 @@
 
 @media (max-width: 600px) {
   .grid {
-    grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); /* Adaptativo para no dejar huecos */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 8px;
   }
   .boardContainer {
