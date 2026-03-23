@@ -35,6 +35,16 @@ function App() {
   const [myPlayerNum, setMyPlayerNum] = useState<1 | 2 | null>(null);
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
 
+  const [gameState, setGameState] = useState<GameState>({
+    board1: [],
+    board2: [],
+    secretPokemon1: null,
+    secretPokemon2: null,
+    turn: 1,
+    phase: 'lobby',
+    winner: null,
+  });
+
   useEffect(() => {
     const timer = setTimeout(async () => {
       if (searchTerm.length > 2 && gameState.phase === 'setup') {
@@ -65,16 +75,6 @@ function App() {
     selectedAnimRef.current = selectedAnim;
   }, [selectedAnim]);
 
-  const [gameState, setGameState] = useState<GameState>({
-    board1: [],
-    board2: [],
-    secretPokemon1: null,
-    secretPokemon2: null,
-    turn: 1,
-    phase: 'lobby',
-    winner: null,
-  });
-  
   const chatMessagesRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
