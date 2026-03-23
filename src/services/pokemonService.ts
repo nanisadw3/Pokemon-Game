@@ -21,37 +21,42 @@ interface PokeAPIRes {
 
 export async function getRandomPokemons(count: number = 25, excludeIds: number[] = []): Promise<Pokemon[]> {
   try {
-    // Obtenemos la lista completa de todos los Pokémon (incluyendo Megas y formas especiales)
-    const allRes = await fetch(`${BASE_URL}?limit=2000`);
+    const allRes = await fetch(`${BASE_URL}?limit=1300`); // Límite razonable para evitar formas raras sin arte
     const allData = await allRes.json();
     const allResults = allData.results;
 
-    const selectedResults: { name: string, url: string }[] = [];
+    const validPokemons: Pokemon[] = [];
     const usedIndices = new Set<number>();
 
-    while (selectedResults.length < count && usedIndices.size < allResults.length) {
+    while (validPokemons.length < count && usedIndices.size < allResults.length) {
       const randomIndex = Math.floor(Math.random() * allResults.length);
-      if (!usedIndices.has(randomIndex)) {
-        usedIndices.add(randomIndex);
-        const p = allResults[randomIndex];
-        // Extraer ID de la URL para filtrar excluidos (ej: https://pokeapi.co/api/v2/pokemon/1/)
-        const id = parseInt(p.url.split('/').filter(Boolean).pop()!);
+      if (usedIndices.has(randomIndex)) continue;
+      
+      usedIndices.add(randomIndex);
+      const p = allResults[randomIndex];
+      const id = parseInt(p.url.split('/').filter(Boolean).pop()!);
+      
+      if (excludeIds.includes(id)) continue;
+
+      try {
+        const detailsRes = await fetch(p.url);
+        const data = await detailsRes.json();
+        const image = data.sprites.other['official-artwork'].front_default || data.sprites.front_default;
         
-        if (!excludeIds.includes(id)) {
-          selectedResults.push(p);
+        if (image) {
+          validPokemons.push({
+            id: data.id,
+            name: data.name,
+            image: image,
+            types: data.types.map((t: any) => t.type.name),
+          });
         }
+      } catch (e) {
+        console.error("Error fetching individual pokemon:", e);
       }
     }
 
-    const pokemonPromises = selectedResults.map(p => fetch(p.url).then(res => res.json()));
-    const pokemonsData = await Promise.all(pokemonPromises);
-
-    return (pokemonsData as PokeAPIRes[]).map((data) => ({
-      id: data.id,
-      name: data.name,
-      image: data.sprites.other['official-artwork'].front_default || data.sprites.front_default || '',
-      types: data.types.map((t) => t.type.name),
-    }));
+    return validPokemons;
   } catch (error) {
     console.error("Error in getRandomPokemons:", error);
     return [];
@@ -65,11 +70,14 @@ export async function getPokemonByName(name: string): Promise<Pokemon | null> {
     const data = await res.json();
     if (!data) return null;
 
+    const image = data.sprites.other['official-artwork'].front_default || data.sprites.front_default;
+    if (!image) return null;
+
     return {
       id: data.id,
       name: data.name,
-      image: data.sprites.other['official-artwork'].front_default,
-      types: data.types.map((t: { type: { name: string } }) => t.type.name),
+      image: image,
+      types: data.types.map((t: any) => t.type.name),
     };
   } catch {
     return null;
@@ -92,11 +100,15 @@ export async function getPokemonDetails(url: string): Promise<Pokemon | null> {
     const res = await fetch(url);
     if (!res.ok) return null;
     const data = await res.json();
+    
+    const image = data.sprites.other['official-artwork'].front_default || data.sprites.front_default;
+    if (!image) return null;
+
     return {
       id: data.id,
       name: data.name,
-      image: data.sprites.other['official-artwork'].front_default,
-      types: data.types.map((t: { type: { name: string } }) => t.type.name),
+      image: image,
+      types: data.types.map((t: any) => t.type.name),
     };
   } catch {
     return null;
