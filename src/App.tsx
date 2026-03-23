@@ -306,9 +306,8 @@ function App() {
         setGameState(prev => {
           const newState = { ...prev };
           const failBoard = [...newState[boardKey]];
-          // NO giramos la carta para que se vea la tacha (X) sobre el Pokémon
-          // pero la marcamos como isWrong permanentemente para que quede "tachada"
-          failBoard[index] = { ...failBoard[index], isFlipped: false, isWrong: true };
+          // Simplemente giramos la carta (mostrando la Pokéball)
+          failBoard[index] = { ...failBoard[index], isFlipped: true, isWrong: false };
           newState[boardKey] = failBoard;
           newState.turn = nextTurn;
           
@@ -318,15 +317,6 @@ function App() {
 
         setIsGuessMode(false);
         sendSystemMsg(`¡Vaya! Falló al intentar adivinar a ${clickedPokemon.name}. Turno de rival.`);
-
-        setGameAlert({
-          title: "¡FALLASTE!",
-          message: `El Pokémon de tu rival NO es ${clickedPokemon.name}. Turno de tu rival.`,
-          onConfirm: () => {
-            setGameAlert(null);
-            // No quitamos isWrong para que la tacha permanezca visible
-          }
-        });
       }
     } else {
       setGameState(prev => {
