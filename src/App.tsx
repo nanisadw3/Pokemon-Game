@@ -54,12 +54,20 @@ function App() {
 
   useEffect(() => {
     const fetchAll = async () => {
-      setLoading(true);
-      const names = await getAllPokemonNames();
-      setAllNames(names);
-      setLoading(false);
+      try {
+        setLoading(true);
+        const names = await getAllPokemonNames();
+        setAllNames(names);
+      } catch (e) {
+        console.error("Error fetching names", e);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchAll();
+
+    const timer = setTimeout(() => setLoading(false), 5000);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
