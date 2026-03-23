@@ -57,12 +57,18 @@ header {
 
 @media (max-width: 600px) {
   header {
-    flex-direction: column;
-    gap: 10px;
+    flex-direction: row;
+    justify-content: space-between;
     padding: 10px;
+    margin-bottom: 10px;
+    gap: 5px;
   }
-  h1 { font-size: 1.8rem; }
-  .turn-indicator { font-size: 1.1rem; padding: 5px 15px; }
+  .header-left h1 { font-size: 1.2rem; }
+  .turn-indicator { 
+    font-size: 0.9rem; 
+    padding: 6px 12px; 
+    border-width: 2px;
+  }
 }
 
 h1 {

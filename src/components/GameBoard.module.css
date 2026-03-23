@@ -33,9 +33,15 @@
 
 @media (max-width: 600px) {
   .grid {
-    gap: 5px;
+    grid-template-columns: repeat(3, 1fr); /* 3 columnas para que sean más grandes */
+    gap: 8px;
   }
   .boardContainer {
-    padding: 8px;
+    padding: 10px 5px;
+    border-radius: 15px;
+  }
+  .title {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
   }
 }

@@ -103,13 +103,18 @@
     padding: 8px 4px;
   }
 }
-
 @media (max-width: 600px) {
   .card {
     animation: none !important;
   }
   .pokemonName {
-    display: none !important;
+    display: block !important;
+    font-size: 0.65rem !important;
+    padding: 2px 0;
+    margin-top: 2px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    color: #000 !important;
   }
   /* Excepción: Mostrar nombre si es la carta secreta revelada */
   .secret .pokemonName {
@@ -119,18 +124,19 @@
   }
   .cardFront {
     justify-content: center;
-    padding: 5px;
+    padding: 4px;
   }
   .pokemonImage {
-    height: 85%;
-  }
-  .secret .pokemonImage {
-    height: 65%; /* Reducir imagen para que quepa el nombre en la secreta */
+    height: 75%;
   }
 }
 
-.secret {
-  border-color: #facc15 !important;
+.flipped .cardInner {
+  transform: rotateY(180deg);
+  opacity: 0.6; /* Carta volteada más oscura/transparente */
+  filter: grayscale(0.5); /* Menos color para las descartadas */
+}
+
   box-shadow: 0 0 25px #facc15, inset 0 0 10px #facc15;
   animation: secretGlow 2s infinite alternate;
 }
