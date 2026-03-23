@@ -7,8 +7,7 @@
 
 .card {
   perspective: 1200px;
-  width: calc(20% - 15px); /* Por defecto 5 columnas */
-  min-width: 140px;
+  width: 100%;
   aspect-ratio: 1/1.2;
   cursor: pointer;
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -103,8 +102,6 @@
 @media (max-width: 600px) {
   .card {
     animation: none !important;
-    width: calc(33.333% - 8px); /* 3 columnas */
-    min-width: 95px;
   }
   .pokemonName {
     display: block !important;

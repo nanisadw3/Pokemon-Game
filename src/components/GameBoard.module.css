@@ -20,9 +20,8 @@
 }
 
 .grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
   gap: 15px;
 }
 
@@ -34,6 +33,7 @@
 
 @media (max-width: 600px) {
   .grid {
+    grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); /* Adaptativo para no dejar huecos */
     gap: 8px;
   }
   .boardContainer {
