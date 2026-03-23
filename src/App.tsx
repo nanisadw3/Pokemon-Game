@@ -107,9 +107,10 @@ function App() {
 
   const initGameMultiplayer = useCallback(async () => {
     setLoading(true);
-    const allData = await getRandomPokemons(40);
-    const p1 = allData.slice(0, 20);
-    const p2 = allData.slice(20, 40);
+    // Cargamos 50 Pokémon (25 para cada uno) para un tablero 5x5
+    const allData = await getRandomPokemons(50);
+    const p1 = allData.slice(0, 25);
+    const p2 = allData.slice(25, 50);
     
     const initialState: GameState = {
       board1: p1.map(p => ({ pokemon: p, isFlipped: false })),
@@ -193,7 +194,10 @@ function App() {
   };
 
   const loadMorePokemons = async () => {
-    if (loadingMore || searchTerm.trim().length > 0 || gameState.phase !== 'setup') return;
+    // Desactivamos la carga de más Pokémon para mantener el formato 5x5
+    if (gameState.phase === 'setup' || gameState.phase === 'playing') return;
+    
+    if (loadingMore || searchTerm.trim().length > 0) return;
     setLoadingMore(true);
     try {
       const currentBoard = myPlayerNum === 1 ? gameState.board1 : gameState.board2;
@@ -229,8 +233,16 @@ function App() {
     setGameState(prev => {
       const newState = { ...prev };
       const myBoardKey = myPlayerNum === 1 ? 'board1' : 'board2';
+      
+      // Verificamos si ya está en el tablero
       const onBoard = newState[myBoardKey].some(i => i.pokemon.id === pokemon.id);
-      if (!onBoard) newState[myBoardKey][0] = { pokemon, isFlipped: false };
+      
+      if (!onBoard) {
+        // Si no está en el tablero (porque lo buscó globalmente), 
+        // lo inyectamos en una posición aleatoria del tablero (0-24)
+        const randomIndex = Math.floor(Math.random() * 25);
+        newState[myBoardKey][randomIndex] = { pokemon, isFlipped: false };
+      }
 
       if (myPlayerNum === 1) newState.secretPokemon1 = pokemon;
       else newState.secretPokemon2 = pokemon;
