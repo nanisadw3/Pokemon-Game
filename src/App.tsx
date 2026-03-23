@@ -44,7 +44,7 @@ function App() {
   const [myPlayerNum, setMyPlayerNum] = useState<1 | 2 | null>(null);
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
 
-  // Refs for socket callbacks (to avoid re-binding listeners)
+  // Refs for socket callbacks
   const roomCodeRef = useRef('');
   const myPlayerNumRef = useRef<1 | 2 | null>(null);
   const selectedAnimRef = useRef<Pokemon | null>(null);
@@ -107,10 +107,10 @@ function App() {
 
   const initGameMultiplayer = useCallback(async () => {
     setLoading(true);
-    // Cargamos 50 Pokémon (25 para cada uno) para un tablero 5x5
-    const allData = await getRandomPokemons(50);
-    const p1 = allData.slice(0, 25);
-    const p2 = allData.slice(25, 50);
+    // Para la selección inicial cargamos 60 Pokémon
+    const allData = await getRandomPokemons(60);
+    const p1 = allData.slice(0, 30);
+    const p2 = allData.slice(30, 60);
     
     const initialState: GameState = {
       board1: p1.map(p => ({ pokemon: p, isFlipped: false })),
@@ -127,7 +127,34 @@ function App() {
     setLoading(false);
   }, [syncState]);
 
-  // Socket setup (ONCE)
+  // Función crítica: Generar el tablero final 5x5
+  const generateFinalBoards = useCallback(async (state: GameState) => {
+    if (myPlayerNumRef.current !== 1) return; // Solo el host genera
+    setLoading(true);
+
+    // Necesitamos 23 Pokémon aleatorios extra para completar los 25 (2 ya son los secretos)
+    const extraData = await getRandomPokemons(23, [state.secretPokemon1!.id, state.secretPokemon2!.id]);
+    
+    // El tablero de cada jugador debe contener el secreto del rival
+    // Para que sea justo, ambos verán el mismo grupo de 25 candidatos
+    const pool = [state.secretPokemon1!, state.secretPokemon2!, ...extraData];
+    
+    // Desordenar pool
+    const shuffled = pool.sort(() => Math.random() - 0.5);
+
+    const finalState: GameState = {
+      ...state,
+      board1: shuffled.map(p => ({ pokemon: p, isFlipped: false })),
+      board2: shuffled.map(p => ({ pokemon: p, isFlipped: false })),
+      phase: 'playing'
+    };
+
+    setGameState(finalState);
+    syncState(finalState);
+    setLoading(false);
+  }, [syncState]);
+
+  // Socket setup
   useEffect(() => {
     const newSocket: Socket = io(SOCKET_SERVER_URL, { transports: ['websocket'] });
     socketRef.current = newSocket;
@@ -141,8 +168,11 @@ function App() {
         if (prev.secretPokemon1 && !newState.secretPokemon1) mergedState.secretPokemon1 = prev.secretPokemon1;
         if (prev.secretPokemon2 && !newState.secretPokemon2) mergedState.secretPokemon2 = prev.secretPokemon2;
         
+        // Si ambos secretos están listos y aún estamos en setup, el Jugador 1 genera los tableros
         if (mergedState.secretPokemon1 && mergedState.secretPokemon2 && mergedState.phase === 'setup' && !selectedAnimRef.current) {
-          mergedState.phase = 'playing';
+          if (myPlayerNumRef.current === 1) {
+            generateFinalBoards(mergedState);
+          }
         }
         return mergedState;
       });
@@ -174,7 +204,7 @@ function App() {
       newSocket.disconnect(); 
       socketRef.current = null;
     };
-  }, [initGameMultiplayer]);
+  }, [initGameMultiplayer, generateFinalBoards]);
 
   const createGame = () => {
     let code = roomCode.trim();
@@ -194,8 +224,8 @@ function App() {
   };
 
   const loadMorePokemons = async () => {
-    // Desactivamos la carga de más Pokémon para mantener el formato 5x5
-    if (gameState.phase === 'setup' || gameState.phase === 'playing') return;
+    // Solo permitimos cargar más en la fase de SETUP para elegir
+    if (gameState.phase !== 'setup') return;
     
     if (loadingMore || searchTerm.trim().length > 0) return;
     setLoadingMore(true);
@@ -232,18 +262,6 @@ function App() {
     
     setGameState(prev => {
       const newState = { ...prev };
-      const myBoardKey = myPlayerNum === 1 ? 'board1' : 'board2';
-      
-      // Verificamos si ya está en el tablero
-      const onBoard = newState[myBoardKey].some(i => i.pokemon.id === pokemon.id);
-      
-      if (!onBoard) {
-        // Si no está en el tablero (porque lo buscó globalmente), 
-        // lo inyectamos en una posición aleatoria del tablero (0-24)
-        const randomIndex = Math.floor(Math.random() * 25);
-        newState[myBoardKey][randomIndex] = { pokemon, isFlipped: false };
-      }
-
       if (myPlayerNum === 1) newState.secretPokemon1 = pokemon;
       else newState.secretPokemon2 = pokemon;
       syncState(newState);
@@ -252,10 +270,7 @@ function App() {
 
     setTimeout(() => {
       setSelectedAnim(null);
-      setGameState(prev => {
-        if (prev.secretPokemon1 && prev.secretPokemon2) return { ...prev, phase: 'playing' };
-        return prev;
-      });
+      // Aquí no pasamos a playing, esperamos a que el socket detecte ambos secretos
     }, 2500);
   };
 
