@@ -9,6 +9,7 @@ interface PokemonCardProps {
   isSecret?: boolean;
   showName?: boolean;
   isWrong?: boolean;
+  animationDelay?: string;
 }
 
 const PokemonCard: React.FC<PokemonCardProps> = ({ 
@@ -17,7 +18,8 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
   onClick, 
   isSecret, 
   showName = true,
-  isWrong = false 
+  isWrong = false,
+  animationDelay = '0s'
 }) => {
   return (
     <div 
@@ -28,6 +30,7 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
         ${isWrong ? styles.wrong : ''}
       `} 
       onClick={onClick}
+      style={{ animationDelay }}
     >
       <div className={styles.cardInner}>
         <div className={styles.cardFront}>

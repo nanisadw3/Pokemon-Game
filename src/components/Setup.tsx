@@ -72,25 +72,27 @@ const Setup: React.FC<SetupProps> = ({
               {/* Primero resultados del tablero actual */}
               {board
                 .filter(item => item.pokemon.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                .map(item => (
+                .map((item, idx) => (
                   <PokemonCard 
                     key={`local-${item.pokemon.id}`} 
                     pokemon={item.pokemon} 
                     isFlipped={false} 
                     onClick={() => handleSelectSecret(item.pokemon)} 
                     showName={true}
+                    animationDelay={`${idx * 0.05}s`}
                   />
                 ))}
               {/* Luego resultados globales (si no están ya en el tablero) */}
               {globalResults
                 .filter(gp => !board.some(item => item.pokemon.id === gp.id))
-                .map(gp => (
+                .map((gp, idx) => (
                   <PokemonCard 
                     key={`global-${gp.id}`} 
                     pokemon={gp} 
                     isFlipped={false} 
                     onClick={() => handleSelectSecret(gp)} 
                     showName={true}
+                    animationDelay={`${(idx + board.filter(item => item.pokemon.name.toLowerCase().includes(searchTerm.toLowerCase())).length) * 0.05}s`}
                   />
                 ))}
             </div>
@@ -104,13 +106,14 @@ const Setup: React.FC<SetupProps> = ({
           <>
             <h2>Elige TU Pokémon secreto del tablero</h2>
             <div className="selection-grid">
-              {board.map(item => (
+              {board.map((item, idx) => (
                 <PokemonCard 
                   key={item.pokemon.id} 
                   pokemon={item.pokemon} 
                   isFlipped={false} 
                   onClick={() => handleSelectSecret(item.pokemon)} 
                   showName={true}
+                  animationDelay={`${idx * 0.05}s`}
                 />
               ))}
             </div>

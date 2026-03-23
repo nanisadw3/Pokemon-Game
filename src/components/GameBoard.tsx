@@ -23,6 +23,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ board, onCardClick, title, showNa
             isWrong={item.isWrong}
             onClick={() => onCardClick(index)}
             showName={showNames}
+            animationDelay={`${index * 0.05}s`}
           />
         ))}
       </div>
