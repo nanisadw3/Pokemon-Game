@@ -495,6 +495,44 @@ h1 {
 .chat-input-area button { background: #facc15; color: #1e293b; border: none; border-radius: 8px; padding: 0 12px; cursor: pointer; font-weight: bold; }
 .toggle-chat-btn { position: fixed; bottom: 20px; right: 20px; background: #1e293b; color: white; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-weight: bold; z-index: 4999; }
 
+/* CONFETTI */
+.confetti-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 12000;
+  overflow: hidden;
+}
+
+.confetti {
+  position: absolute;
+  top: -20px;
+  width: 12px;
+  height: 12px;
+  background-color: #facc15;
+  border-radius: 2px;
+  animation: confettiFall 4s linear infinite;
+}
+
+.confetti.c0 { background-color: #facc15; }
+.confetti.c1 { background-color: #3b82f6; }
+.confetti.c2 { background-color: #ef4444; }
+.confetti.c3 { background-color: #22c55e; }
+.confetti.c4 { background-color: #9333ea; }
+.confetti.c5 { background-color: #f97316; }
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  100% {
+    transform: translateY(110vh) rotate(720deg);
+  }
+}
+
 .main-wrapper { display: flex; flex-direction: column; min-height: 100vh; }
 .app-footer { margin-top: auto; padding: 30px 0; text-align: center; opacity: 0.6; font-size: 0.9rem; letter-spacing: 1px; }
 .app-footer p { margin: 0; color: #94a3b8; }
