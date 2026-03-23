@@ -332,30 +332,32 @@ h1 {
 
 @media (max-width: 600px) {
   .victory-card-epic {
-    padding: 20px 15px;
+    padding: 15px 10px; /* Menos relleno vertical */
     border-width: 4px;
     border-radius: 25px;
   }
   .victory-card-epic h1 {
-    font-size: 1.8rem;
-    margin-bottom: 15px;
+    font-size: 1.6rem;
+    margin-bottom: 5px; /* Menos margen inferior */
+    margin-top: 0;
   }
   .victory-card-epic img {
-    width: 200px !important;
-    height: 200px !important;
+    width: 160px !important; /* Imagen más pequeña para ahorrar altura */
+    height: 160px !important;
   }
   .victory-card-epic p {
-    font-size: 0.9rem !important;
-    margin: 10px 0 !important;
+    font-size: 0.85rem !important;
+    margin: 5px 0 !important; /* Menos margen vertical */
   }
   .victory-card-epic h2 {
-    font-size: 1.8rem !important;
-    margin-bottom: 15px !important;
+    font-size: 1.6rem !important;
+    margin-bottom: 10px !important;
+    margin-top: 0 !important;
   }
   .play-again-btn {
-    padding: 12px 30px;
-    font-size: 1rem;
-    margin-top: 10px;
+    padding: 10px 25px;
+    font-size: 0.95rem;
+    margin-top: 5px;
   }
 }
 
