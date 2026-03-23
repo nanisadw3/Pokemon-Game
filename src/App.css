@@ -226,85 +226,99 @@ h1 {
   margin: 0 auto;
 }
 
-/* MEJORAS MÓVIL SETUP */
-@media (max-width: 600px) {
-  .setup-container {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  .floating-search-bar {
-    width: 92%;
-    top: 10px;
-  }
-  .search-input-floating {
-    font-size: 1.1rem;
-    padding: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-  }
-  .setup-board-scroll {
-    padding-top: 80px;
-    padding-left: 5px;
-    padding-right: 5px;
-  }
-  .selection-grid {
-    grid-template-columns: repeat(3, 1fr) !important; /* 3 columnas en lugar de 2 para ver más */
-    gap: 8px !important;
-    padding: 10px !important;
-  }
+/* LOBBY MODERNO MÓVIL */
+.lobby-container {
+  padding: 15px;
+  background: radial-gradient(circle at top, #1e293b 0%, #020617 100%);
 }
 
-/* ANIMACIÓN DE DERROTA */
-.defeat-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
+.lobby-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 4px solid #facc15;
+  border-radius: 40px;
+  padding: 40px 30px;
+  backdrop-filter: blur(20px);
   width: 100%;
-  height: 100%;
-  background: rgba(15, 23, 42, 0.8);
-  pointer-events: none;
-  z-index: 12000;
-  overflow: hidden;
+  max-width: 450px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 0 20px rgba(250, 204, 21, 0.2);
 }
 
-.rain-drop {
+.lobby-box input {
+  font-size: 2rem; /* Más grande para móviles */
+  padding: 20px;
+  background: #0f172a;
+  border: 4px solid #334155;
+  border-radius: 25px;
+  margin-bottom: 25px;
+  text-align: center;
+  color: #facc15;
+  font-family: 'Courier New', Courier, monospace;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.lobby-box input:focus {
+  border-color: #facc15;
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
+}
+
+.lobby-buttons {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+}
+
+.create-btn, .join-btn {
+  padding: 22px;
+  font-size: 1.5rem;
+  letter-spacing: 2px;
+  border-radius: 25px;
+  border: 4px solid #1e293b;
+  text-transform: uppercase;
+}
+
+@media (max-width: 600px) {
+  .lobby-box { padding: 30px 20px; }
+  .lobby-box h1 { font-size: 1.8rem; }
+  .create-btn, .join-btn { padding: 18px; font-size: 1.2rem; }
+}
+
+/* NUEVA ANIMACIÓN GANADOR: FUEGOS ARTIFICIALES */
+@keyframes firework {
+  0% { transform: translateY(100vh) scale(0); opacity: 1; }
+  50% { transform: translateY(var(--midY)) scale(1); opacity: 1; }
+  100% { transform: translateY(var(--endY)) translateX(var(--endX)) scale(1.5); opacity: 0; }
+}
+
+.confetti.firework {
+  bottom: -20px;
+  left: 50%;
+  animation: firework 3s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+}
+
+/* NUEVA ANIMACIÓN PERDEDOR: ESTRELLAS MÁGICAS */
+.star-particle {
   position: absolute;
-  background-color: rgba(148, 163, 184, 0.4);
-  width: 2px;
-  height: 15px;
   top: -20px;
-  animation: rainFall 0.8s linear infinite;
+  width: 15px;
+  height: 15px;
+  background: #facc15;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  animation: starFall 4s linear infinite;
 }
 
-@keyframes rainFall {
-  to { transform: translateY(110vh); }
+@keyframes starFall {
+  to { transform: translateY(110vh) rotate(360deg); opacity: 0; }
 }
 
 .loser-image {
-  filter: grayscale(1) contrast(0.8);
-  animation: loserShake 4s infinite ease-in-out;
+  filter: none !important; /* Quitar gris */
+  animation: floatPoke 3s infinite ease-in-out;
 }
 
-@keyframes loserShake {
-  0%, 100% { transform: translateX(0); opacity: 0.8; }
-  25% { transform: translateX(-3px); }
-  75% { transform: translateX(3px); }
-}
-
-/* NUEVA ANIMACIÓN CONFETTI (BURST) */
-@keyframes confettiBurst {
-  0% {
-    transform: translate(0, 0) scale(0);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(var(--tx), var(--ty)) rotate(var(--tr)) scale(1);
-    opacity: 0;
-  }
-}
-
-.confetti.burst {
-  top: 50%;
-  left: 50%;
-  animation: confettiBurst 3s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+.defeat-card {
+  border-color: #3b82f6 !important; /* Azul en lugar de amarillo para variar */
+  box-shadow: 0 0 40px rgba(59, 130, 246, 0.3);
 }
 
 .search-results-section {

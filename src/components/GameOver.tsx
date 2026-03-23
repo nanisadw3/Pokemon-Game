@@ -17,31 +17,28 @@ const GameOver: React.FC<GameOverProps> = ({
   const isWinner = winner === myPlayerNum;
   const opponentSecret = myPlayerNum === 1 ? secretPokemon2 : secretPokemon1;
 
-  const confettiItems = useMemo(() => {
-    return [...Array(150)].map((_, i) => {
-      // Ángulo aleatorio y distancia para la explosión desde el centro
-      const angle = Math.random() * Math.PI * 2;
-      const dist = 100 + Math.random() * 800;
-      const tx = `${Math.cos(angle) * dist}px`;
-      const ty = `${Math.sin(angle) * dist}px`;
-      const tr = `${Math.random() * 1000}deg`;
-
+  const fireworks = useMemo(() => {
+    return [...Array(100)].map((_, i) => {
+      const midY = `-${30 + Math.random() * 40}vh`; // Altura media
+      const endY = `-${10 + Math.random() * 20}vh`; // Caída final
+      const endX = `${(Math.random() - 0.5) * 60}vw`; // Dispersión lateral
       return {
         id: i,
-        tx, ty, tr,
-        delay: `${Math.random() * 0.5}s`,
-        opacity: 0.8 + Math.random() * 0.2,
+        midY, endY, endX,
+        left: `${20 + Math.random() * 60}%`, // Salen del centro-inferior
+        delay: `${Math.random() * 2}s`,
         scale: 0.5 + Math.random() * 1.5,
       };
     });
   }, []);
 
-  const rainDrops = useMemo(() => {
-    return [...Array(80)].map((_, i) => ({
+  const stars = useMemo(() => {
+    return [...Array(60)].map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 2}s`,
-      duration: `${0.5 + Math.random() * 0.5}s`
+      delay: `${Math.random() * 3}s`,
+      duration: `${3 + Math.random() * 2}s`,
+      color: ['#facc15', '#3b82f6', '#ef4444', '#22c55e', '#ffffff'][i % 5]
     }));
   }, []);
 
@@ -49,31 +46,33 @@ const GameOver: React.FC<GameOverProps> = ({
     <>
       {isWinner ? (
         <div className="confetti-container">
-          {confettiItems.map((item) => (
+          {fireworks.map((fw) => (
             <div 
-              key={item.id} 
-              className={`confetti burst c${item.id % 6}`} 
+              key={fw.id} 
+              className={`confetti firework c${fw.id % 6}`} 
               style={{ 
-                '--tx': item.tx,
-                '--ty': item.ty,
-                '--tr': item.tr,
-                animationDelay: item.delay,
-                opacity: item.opacity,
-                transform: `scale(${item.scale})`
+                left: fw.left,
+                '--midY': fw.midY,
+                '--endY': fw.endY,
+                '--endX': fw.endX,
+                animationDelay: fw.delay,
+                transform: `scale(${fw.scale})`
               } as React.CSSProperties} 
             />
           ))}
         </div>
       ) : (
-        <div className="defeat-overlay">
-          {rainDrops.map((drop) => (
+        <div className="defeat-overlay" style={{ background: 'rgba(15, 23, 42, 0.4)' }}>
+          {stars.map((star) => (
             <div 
-              key={drop.id} 
-              className="rain-drop" 
+              key={star.id} 
+              className="star-particle" 
               style={{ 
-                left: drop.left, 
-                animationDelay: drop.delay, 
-                animationDuration: drop.duration 
+                left: star.left, 
+                animationDelay: star.delay, 
+                animationDuration: star.duration,
+                background: star.color,
+                boxShadow: `0 0 10px ${star.color}`
               }} 
             />
           ))}
@@ -82,18 +81,22 @@ const GameOver: React.FC<GameOverProps> = ({
 
       <div className="victory-overlay">
         <div className={`victory-card-epic ${!isWinner ? 'defeat-card' : ''}`}>
-          <h1>{isWinner ? "🏆 ¡GANASTE! 🏆" : "🌧️ PERDISTE..."}</h1>
+          <h1 style={{ fontSize: '2.5rem', marginBottom: '20px' }}>
+            {isWinner ? "🏆 ¡VICTORIA MAGISTRAL! 🏆" : "🌟 ¡BUEN INTENTO! 🌟"}
+          </h1>
           <img 
             src={opponentSecret?.image} 
-            className={`winner-image ${!isWinner ? 'loser-image' : ''}`} 
-            alt="Winner" 
+            className="winner-image" 
+            alt="Pokemon" 
+            style={{ width: '280px', height: '280px' }}
           />
-          <p>Era <span>{opponentSecret?.name}</span></p>
+          <p style={{ fontSize: '1.5rem' }}>El Pokémon secreto era <br/><span style={{ fontSize: '2.5rem', color: '#facc15' }}>{opponentSecret?.name}</span></p>
           <button 
             onClick={() => window.location.reload()} 
-            className={`play-again-btn ${!isWinner ? 'retry-btn' : ''}`}
+            className="play-again-btn"
+            style={{ marginTop: '30px', padding: '20px 40px', fontSize: '1.5rem' }}
           >
-            {isWinner ? '¡NUEVA PARTIDA!' : 'INTENTAR DE NUEVO'}
+            VOLVER A JUGAR
           </button>
         </div>
       </div>
