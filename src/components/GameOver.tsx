@@ -17,28 +17,23 @@ const GameOver: React.FC<GameOverProps> = ({
   const isWinner = winner === myPlayerNum;
   const opponentSecret = myPlayerNum === 1 ? secretPokemon2 : secretPokemon1;
 
-  const fireworks = useMemo(() => {
-    return [...Array(100)].map((_, i) => {
-      const midY = `-${30 + Math.random() * 40}vh`; // Altura media
-      const endY = `-${10 + Math.random() * 20}vh`; // Caída final
-      const endX = `${(Math.random() - 0.5) * 60}vw`; // Dispersión lateral
-      return {
-        id: i,
-        midY, endY, endX,
-        left: `${20 + Math.random() * 60}%`, // Salen del centro-inferior
-        delay: `${Math.random() * 2}s`,
-        scale: 0.5 + Math.random() * 1.5,
-      };
-    });
-  }, []);
-
-  const stars = useMemo(() => {
-    return [...Array(60)].map((_, i) => ({
+  const winnerConfetti = useMemo(() => {
+    return [...Array(150)].map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 3}s`,
+      delay: `${Math.random() * 4}s`,
       duration: `${3 + Math.random() * 2}s`,
-      color: ['#facc15', '#3b82f6', '#ef4444', '#22c55e', '#ffffff'][i % 5]
+      scale: 0.5 + Math.random() * 1.2
+    }));
+  }, []);
+
+  const loserSparkles = useMemo(() => {
+    return [...Array(80)].map((_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      top: `${100 + Math.random() * 20}%`,
+      delay: `${Math.random() * 3}s`,
+      duration: `${2 + Math.random() * 2}s`
     }));
   }, []);
 
@@ -46,33 +41,30 @@ const GameOver: React.FC<GameOverProps> = ({
     <>
       {isWinner ? (
         <div className="confetti-container">
-          {fireworks.map((fw) => (
+          {winnerConfetti.map((c) => (
             <div 
-              key={fw.id} 
-              className={`confetti firework c${fw.id % 6}`} 
+              key={c.id} 
+              className={`confetti paper c${c.id % 6}`} 
               style={{ 
-                left: fw.left,
-                '--midY': fw.midY,
-                '--endY': fw.endY,
-                '--endX': fw.endX,
-                animationDelay: fw.delay,
-                transform: `scale(${fw.scale})`
-              } as React.CSSProperties} 
+                left: c.left,
+                animationDelay: c.delay,
+                animationDuration: c.duration,
+                transform: `scale(${c.scale})`
+              }} 
             />
           ))}
         </div>
       ) : (
-        <div className="defeat-overlay" style={{ background: 'rgba(15, 23, 42, 0.4)' }}>
-          {stars.map((star) => (
+        <div className="defeat-overlay" style={{ background: 'rgba(15, 23, 42, 0.6)' }}>
+          {loserSparkles.map((s) => (
             <div 
-              key={star.id} 
-              className="star-particle" 
+              key={s.id} 
+              className="sparkle-particle" 
               style={{ 
-                left: star.left, 
-                animationDelay: star.delay, 
-                animationDuration: star.duration,
-                background: star.color,
-                boxShadow: `0 0 10px ${star.color}`
+                left: s.left, 
+                top: s.top,
+                animationDelay: s.delay, 
+                animationDuration: s.duration 
               }} 
             />
           ))}
@@ -80,23 +72,23 @@ const GameOver: React.FC<GameOverProps> = ({
       )}
 
       <div className="victory-overlay">
-        <div className={`victory-card-epic ${!isWinner ? 'defeat-card' : ''}`}>
+        <div className="victory-card-epic">
           <h1 style={{ fontSize: '2.5rem', marginBottom: '20px' }}>
-            {isWinner ? "🏆 ¡VICTORIA MAGISTRAL! 🏆" : "🌟 ¡BUEN INTENTO! 🌟"}
+            {isWinner ? "🏆 ¡GANASTE! 🏆" : "💫 ¡CASI LO LOGRAS! 💫"}
           </h1>
           <img 
             src={opponentSecret?.image} 
-            className="winner-image" 
+            className={`winner-image ${!isWinner ? 'loser-image' : ''}`} 
             alt="Pokemon" 
-            style={{ width: '280px', height: '280px' }}
+            style={{ width: '300px', height: '300px' }}
           />
-          <p style={{ fontSize: '1.5rem' }}>El Pokémon secreto era <br/><span style={{ fontSize: '2.5rem', color: '#facc15' }}>{opponentSecret?.name}</span></p>
+          <p style={{ fontSize: '1.4rem' }}>El Pokémon rival era <br/><span style={{ fontSize: '2.4rem', color: '#facc15' }}>{opponentSecret?.name}</span></p>
           <button 
             onClick={() => window.location.reload()} 
             className="play-again-btn"
-            style={{ marginTop: '30px', padding: '20px 40px', fontSize: '1.5rem' }}
+            style={{ marginTop: '25px', padding: '18px 35px' }}
           >
-            VOLVER A JUGAR
+            NUEVA PARTIDA
           </button>
         </div>
       </div>

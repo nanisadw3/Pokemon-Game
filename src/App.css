@@ -226,99 +226,81 @@ h1 {
   margin: 0 auto;
 }
 
-/* LOBBY MODERNO MÓVIL */
+/* LOBBY CLÁSICO MEJORADO */
 .lobby-container {
-  padding: 15px;
-  background: radial-gradient(circle at top, #1e293b 0%, #020617 100%);
+  padding: 20px;
+  background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
 }
 
 .lobby-box {
-  background: rgba(255, 255, 255, 0.05);
-  border: 4px solid #facc15;
-  border-radius: 40px;
-  padding: 40px 30px;
-  backdrop-filter: blur(20px);
-  width: 100%;
-  max-width: 450px;
-  box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 0 20px rgba(250, 204, 21, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 35px;
+  border-radius: 30px;
+  border: 5px solid #facc15; /* El amarillo clásico */
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
 }
 
 .lobby-box input {
-  font-size: 2rem; /* Más grande para móviles */
-  padding: 20px;
-  background: #0f172a;
-  border: 4px solid #334155;
-  border-radius: 25px;
-  margin-bottom: 25px;
+  padding: 15px;
+  font-size: 1.8rem;
   text-align: center;
-  color: #facc15;
-  font-family: 'Courier New', Courier, monospace;
-  box-sizing: border-box;
+  border-radius: 15px;
+  border: 4px solid #facc15;
+  font-weight: 900;
+  color: #ffffff;
+  background: #0f172a;
+  outline: none;
   width: 100%;
-}
-
-.lobby-box input:focus {
-  border-color: #facc15;
-  box-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
-}
-
-.lobby-buttons {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 15px;
-}
-
-.create-btn, .join-btn {
-  padding: 22px;
-  font-size: 1.5rem;
-  letter-spacing: 2px;
-  border-radius: 25px;
-  border: 4px solid #1e293b;
-  text-transform: uppercase;
+  box-sizing: border-box;
 }
 
 @media (max-width: 600px) {
-  .lobby-box { padding: 30px 20px; }
-  .lobby-box h1 { font-size: 1.8rem; }
-  .create-btn, .join-btn { padding: 18px; font-size: 1.2rem; }
+  .lobby-box { padding: 25px 20px; gap: 15px; }
+  .lobby-box input { font-size: 1.5rem; padding: 12px; }
+  .create-btn, .join-btn { padding: 15px; font-size: 1.1rem; }
 }
 
-/* NUEVA ANIMACIÓN GANADOR: FUEGOS ARTIFICIALES */
-@keyframes firework {
-  0% { transform: translateY(100vh) scale(0); opacity: 1; }
-  50% { transform: translateY(var(--midY)) scale(1); opacity: 1; }
-  100% { transform: translateY(var(--endY)) translateX(var(--endX)) scale(1.5); opacity: 0; }
-}
-
-.confetti.firework {
-  bottom: -20px;
-  left: 50%;
-  animation: firework 3s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
-}
-
-/* NUEVA ANIMACIÓN PERDEDOR: ESTRELLAS MÁGICAS */
-.star-particle {
+/* NUEVA ANIMACIÓN GANADOR: PAPEL PICADO 3D */
+.confetti.paper {
   position: absolute;
   top: -20px;
-  width: 15px;
-  height: 15px;
-  background: #facc15;
-  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-  animation: starFall 4s linear infinite;
+  width: 12px;
+  height: 20px;
+  background-color: #facc15;
+  border-radius: 2px;
+  animation: confettiFall3D 4s ease-out forwards;
 }
 
-@keyframes starFall {
-  to { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+@keyframes confettiFall3D {
+  0% { transform: translateY(0) rotateX(0deg) rotateY(0deg) rotateZ(0deg); opacity: 1; }
+  100% { transform: translateY(105vh) rotateX(720deg) rotateY(360deg) rotateZ(180deg); opacity: 0; }
+}
+
+/* NUEVA ANIMACIÓN PERDEDOR: DESTELLOS DORADOS */
+.sparkle-particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #facc15;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #facc15, 0 0 20px #facc15;
+  animation: sparkleFloat 3s ease-in-out infinite;
+}
+
+@keyframes sparkleFloat {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0; }
+  50% { transform: translateY(-100vh) scale(1.5); opacity: 1; }
 }
 
 .loser-image {
-  filter: none !important; /* Quitar gris */
-  animation: floatPoke 3s infinite ease-in-out;
-}
-
-.defeat-card {
-  border-color: #3b82f6 !important; /* Azul en lugar de amarillo para variar */
-  box-shadow: 0 0 40px rgba(59, 130, 246, 0.3);
+  filter: none !important; /* Aseguramos que se vea a color */
+  animation: winnerDance 2s infinite ease-in-out;
 }
 
 .search-results-section {
