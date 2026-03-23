@@ -33,7 +33,7 @@
 
 @media (max-width: 600px) {
   .grid {
-    grid-template-columns: repeat(3, 1fr); /* 3 columnas para que sean más grandes */
+    grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); /* Adaptativo para no dejar huecos */
     gap: 8px;
   }
   .boardContainer {

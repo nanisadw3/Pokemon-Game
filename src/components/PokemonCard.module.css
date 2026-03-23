@@ -43,10 +43,6 @@
   will-change: transform;
 }
 
-.flipped .cardInner {
-  transform: rotateY(180deg);
-}
-
 .cardFront, .cardBack {
   position: absolute;
   width: 100%;
@@ -133,8 +129,6 @@
 
 .flipped .cardInner {
   transform: rotateY(180deg);
-  opacity: 0.6; /* Carta volteada más oscura/transparente */
-  filter: grayscale(0.5); /* Menos color para las descartadas */
 }
 
 .secret {
