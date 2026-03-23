@@ -109,6 +109,8 @@ function App() {
         
         return mergedState;
       });
+      // Importante: detener pantalla de carga para Jugador 2 cuando recibe el tablero de Jugador 1
+      setLoading(false);
     });
 
     newSocket.on('receive-chat-msg', (msg: ChatMessage) => {
@@ -117,6 +119,11 @@ function App() {
 
     newSocket.on('game-ready', () => {
       setIsWaitingForOpponent(false);
+      // El Jugador 2 ya se puede ver "listo" aunque espere el tablero
+      if (myPlayerNumRef.current === 2) {
+        setLoading(false); 
+      }
+      
       // Pequeño delay para asegurar que el otro jugador ya está en la sala de socket.io
       // y reciba el primer sync-state
       setTimeout(() => {
