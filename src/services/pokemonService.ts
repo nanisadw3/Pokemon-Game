@@ -41,7 +41,7 @@ export async function getPokemonByName(name: string): Promise<Pokemon | null> {
 
 export async function getAllPokemonNames(): Promise<{ name: string, url: string }[]> {
   try {
-    const res = await fetch(`${BASE_URL}?limit=2000`);
+    const res = await fetch(`${BASE_URL}?limit=10000`);
     const data = await res.json();
     return data.results;
   } catch (error) {

@@ -98,61 +98,60 @@ h1 {
 }
 
 .setup-hero-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 40px 20px;
-  background: rgba(15, 23, 42, 0.4);
-  border-radius: 40px;
-  border: 4px solid rgba(255, 255, 255, 0.1);
-  margin: 0 auto 40px auto;
-  gap: 20px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
   width: 100%;
-}
-
-.setup-hero-section h1 {
-  font-size: 3.5rem;
-  margin: 0;
-  text-shadow: 4px 4px 0px #1e40af;
-}
-
-.setup-hero-section p {
-  font-size: 1.4rem;
-  color: #94a3b8;
-  margin: 0;
-  font-weight: 600;
+  max-width: 1200px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 60px 20px;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 40px;
+  border: 4px solid #facc15;
+  margin: 0 auto 50px auto;
+  gap: 30px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.6);
 }
 
 .main-search-wrapper {
   width: 100%;
-  max-width: 800px;
-  margin: 10px auto;
+  max-width: 900px;
+  margin: 0 auto;
   display: flex;
   justify-content: center;
+  align-items: center;
+}
+
+.search-container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .search-input-main {
   width: 100%;
-  padding: 20px 30px;
-  background: #0f172a;
-  border: 5px solid #facc15;
-  border-radius: 60px;
-  color: white;
-  font-size: 1.5rem;
-  font-weight: 800;
+  padding: 25px 40px;
+  background: #020617;
+  border: 6px solid #facc15;
+  border-radius: 80px;
+  color: #fff;
+  font-size: 1.8rem;
+  font-weight: 900;
   outline: none;
-  box-shadow: 0 10px 0 #854d0e, 0 10px 40px rgba(250, 204, 21, 0.2);
-  transition: all 0.2s;
+  box-shadow: 0 12px 0 #854d0e, 0 15px 50px rgba(250, 204, 21, 0.3);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   text-align: center;
 }
 
+.search-input-main::placeholder {
+  color: rgba(255,255,255,0.4);
+}
+
 .search-input-main:focus {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 0 #854d0e, 0 20px 60px rgba(250, 204, 21, 0.4);
-  background: #1e293b;
+  transform: scale(1.05) translateY(-8px);
+  box-shadow: 0 20px 0 #854d0e, 0 30px 80px rgba(250, 204, 21, 0.5);
+  border-color: #fbbf24;
 }
 
 .search-loader-main {
