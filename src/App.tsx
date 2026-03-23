@@ -12,6 +12,19 @@ import { io, Socket } from 'socket.io-client';
 
 const SOCKET_SERVER_URL = "https://oyster-app-xwu29.ondigitalocean.app";
 
+// Audio Utils
+const playSound = (type: 'click' | 'success' | 'fail' | 'win') => {
+  const soundUrls = {
+    click: 'https://www.soundjay.com/buttons/sounds/button-16.mp3', 
+    success: 'https://www.soundjay.com/buttons/sounds/button-3.mp3', 
+    fail: 'https://www.soundjay.com/buttons/sounds/button-10.mp3', 
+    win: 'https://www.soundjay.com/misc/sounds/bell-ring-01.mp3' 
+  };
+  const audio = new Audio(soundUrls[type]);
+  audio.volume = 0.2;
+  audio.play().catch(() => {});
+};
+
 interface ChatMessage {
   sender: 'player1' | 'player2' | 'system';
   text: string;
@@ -269,6 +282,7 @@ function App() {
   };
 
   const handleSelectSecret = (pokemon: Pokemon) => {
+    playSound('click');
     setSelectedAnim(pokemon);
     setSearchTerm('');
     setGlobalResults([]);
@@ -289,25 +303,29 @@ function App() {
   const sendSystemMsg = useCallback((text: string) => {
     socketRef.current?.emit('send-chat-msg', { roomCode: roomCodeRef.current, message: { sender: 'system', text } });
   }, []);
+const handleCardClick = (index: number) => {
+  if (gameState.phase !== 'playing' || gameState.turn !== myPlayerNum) return;
 
-  const handleCardClick = (index: number) => {
-    if (gameState.phase !== 'playing' || gameState.turn !== myPlayerNum) return;
-    
-    const boardKey = myPlayerNum === 1 ? 'board2' : 'board1';
-    const clickedPokemon = gameState[boardKey][index].pokemon;
+  playSound('click');
+  const boardKey = myPlayerNum === 1 ? 'board2' : 'board1';
+  const clickedPokemon = gameState[boardKey][index].pokemon;
 
-    if (isGuessMode) {
-      const opponentSecret = myPlayerNum === 1 ? gameState.secretPokemon2 : gameState.secretPokemon1;
-      
-      if (clickedPokemon.id === opponentSecret?.id) {
-        const winState = { ...gameState, phase: 'gameover' as const, winner: myPlayerNum };
-        setGameState(winState);
-        syncState(winState);
-      } else {
-        // FALLO AL ADIVINAR: Tachar automáticamente y cambiar de turno
-        const nextTurn = myPlayerNum === 1 ? 2 : 1;
-        
-        setGameState(prev => {
+  if (isGuessMode) {
+    const opponentSecret = myPlayerNum === 1 ? gameState.secretPokemon2 : gameState.secretPokemon1;
+
+    if (clickedPokemon.id === opponentSecret?.id) {
+      playSound('win');
+      const winState = { ...gameState, phase: 'gameover' as const, winner: myPlayerNum };
+      setGameState(winState);
+      syncState(winState);
+    } else {
+      // FALLO AL ADIVINAR: Tachar automáticamente y cambiar de turno
+      playSound('fail');
+      const nextTurn = myPlayerNum === 1 ? 2 : 1;
+
+      setGameState(prev => {
+...
+
           const newState = { ...prev };
           const failBoard = [...newState[boardKey]];
           // Simplemente giramos la carta (mostrando la Pokéball)

@@ -338,30 +338,35 @@ h1 {
   background: none;
 }
 
-/* BOTÓN CLÁSICO MEJORADO */
+/* BOTÓN CLÁSICO AZUL MEJORADO */
 .play-again-btn {
-  background: #ef4444;
+  background: #3b82f6;
   border: 4px solid #1e293b;
   border-radius: 50px;
   color: white;
   font-weight: 900;
   text-transform: uppercase;
-  padding: 15px 40px;
-  font-size: 1.2rem;
+  padding: 18px 50px;
+  font-size: 1.3rem;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 6px 0 #991b1b;
-  margin-top: 20px;
+  box-shadow: 0 6px 0 #1e40af;
+  margin-top: 25px;
+  letter-spacing: 1px;
 }
 
 .play-again-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 9px 0 #991b1b;
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 9px 0 #1e40af;
+  background: #2563eb;
 }
 
-.play-again-btn:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #991b1b;
+/* ENSANCHAR TARJETAS EN COMPU */
+@media (min-width: 1000px) {
+  .selection-grid {
+    grid-template-columns: repeat(6, 1fr) !important; /* Menos columnas = más anchas */
+    gap: 25px !important;
+  }
 }
 
 /* NUEVA ANIMACIÓN: ESTRELLAS DORADAS (GANADOR) */
