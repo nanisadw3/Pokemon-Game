@@ -38,6 +38,10 @@ const Lobby: React.FC<LobbyProps> = ({
           </div>
         )}
       </div>
+      <div className="lobby-footer">
+        <p>Pokémon Guess Who Multiplayer</p>
+        <p>Desarrollado por <strong>Inaki Sobera Sotomayor</strong></p>
+      </div>
     </div>
   );
 };
